@@ -7,6 +7,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/heritage_loading.dart';
+import '../services/profile_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,8 +20,15 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer(const Duration(seconds: 2), () {
-      if (mounted) Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+    _timer = Timer(const Duration(seconds: 2), () async {
+      if (!mounted) return;
+      final profile = ProfileScope.of(context);
+      await profile.ready;
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed(
+          profile.isAuthenticated ? AppRoutes.home : AppRoutes.login,
+        );
+      }
     });
   }
 

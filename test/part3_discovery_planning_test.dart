@@ -1,3 +1,4 @@
+import 'package:heritage_walk/features/discovery_planning/screens/explore_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heritage_walk/core/routes/app_routes.dart';
@@ -41,12 +42,11 @@ Future<void> makePlan(WidgetTester tester) async {
 
 void main() {
   testWidgets(
-    'Home renders the eight places and explicitly labels placeholders',
+    'Explore renders the eight places and explicitly labels placeholders',
     (tester) async {
-      await launch(tester, AppRoutes.home);
-      expect(find.byType(HomeScreen), findsOneWidget);
+      await launch(tester, AppRoutes.explore);
+      expect(find.byType(ExploreScreen), findsOneWidget);
       expect(find.byType(PlaceCard), findsNWidgets(8));
-      expect(find.text('Featured Places'), findsOneWidget);
       expect(find.text('Placeholder image'), findsNWidgets(8));
     },
   );
@@ -54,7 +54,7 @@ void main() {
   testWidgets(
     'Search filters across location fields and displays empty state',
     (tester) async {
-      await launch(tester, AppRoutes.home);
+      await launch(tester, AppRoutes.explore);
       final search = find.widgetWithText(
         HeritageTextField,
         'Search heritage places...',
@@ -72,7 +72,7 @@ void main() {
   testWidgets('Category selection filters places and All restores them', (
     tester,
   ) async {
-    await launch(tester, AppRoutes.home);
+    await launch(tester, AppRoutes.explore);
     await press(tester, find.widgetWithText(ChoiceChip, 'Temples'));
     await tester.pumpAndSettle();
     expect(find.byType(PlaceCard), findsNWidgets(2));
@@ -121,25 +121,18 @@ void main() {
     },
   );
 
-  testWidgets('Place preview favorites work and full details stays deferred', (
+  testWidgets('Featured place opens details and shares favorite state', (
     tester,
   ) async {
     await launch(tester, AppRoutes.home);
     await textTap(tester, 'Sigiriya Rock Fortress');
     await tester.pumpAndSettle();
-    await textTap(tester, 'Add Favorite');
+    await press(tester, find.byTooltip('Add Favorite'));
     await tester.pumpAndSettle();
-    expect(find.text('Remove Favorite'), findsOneWidget);
-    await textTap(tester, 'View Full Details');
+    expect(find.byTooltip('Remove Favorite'), findsOneWidget);
     await tester.pumpAndSettle();
-    expect(
-      find.text('Detailed heritage guide will be connected in Part 4.'),
-      findsOneWidget,
-    );
-    expect(
-      find.byTooltip('Remove Sigiriya Rock Fortress from favorites'),
-      findsOneWidget,
-    );
+    expect(find.text('Place Details'), findsOneWidget);
+    expect(find.byTooltip('Remove Favorite'), findsOneWidget);
   });
 
   testWidgets(
@@ -263,18 +256,15 @@ void main() {
   });
 
   testWidgets(
-    'Main navigation reuses discovery, defers map and avoids duplicate stacks',
+    'Main navigation reuses discovery, opens Map and avoids duplicate stacks',
     (tester) async {
       await launch(tester, AppRoutes.home);
       await textTap(tester, 'Map');
       await tester.pumpAndSettle();
-      expect(
-        find.text('Map & Navigation will be connected in Part 4.'),
-        findsOneWidget,
-      );
+      expect(find.text('Choose a destination'), findsOneWidget);
       await textTap(tester, 'Explore');
       await tester.pumpAndSettle();
-      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.byType(ExploreScreen), findsOneWidget);
       await textTap(tester, 'Itinerary');
       await tester.pumpAndSettle();
       expect(find.text('My Itineraries'), findsOneWidget);

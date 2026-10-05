@@ -55,8 +55,10 @@ class _PasswordResetDialogState extends State<PasswordResetDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Enter your email to request reset instructions. This is a demo; no email will be sent.',
+              Text(
+                widget.service.isCloud
+                    ? 'Enter your email to request password reset instructions.'
+                    : 'Enter your email to request reset instructions. This is a demo; no email will be sent.',
               ),
               const SizedBox(height: 16),
               HeritageTextField(

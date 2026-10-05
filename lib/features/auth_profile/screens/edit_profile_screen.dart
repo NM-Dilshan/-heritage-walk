@@ -1,3 +1,5 @@
+import '../../../core/firebase/backend_error.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../shared/widgets/heritage_app_bar.dart';
@@ -62,13 +64,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         const SnackBar(content: Text('Profile updated successfully')),
       );
       Navigator.of(context).pop();
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Unable to save changes. Please try again.'),
-          ),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(backendMessage(error))));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -160,6 +159,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       keyboardType: TextInputType.emailAddress,
                       enabled: !_busy,
                     ),
+                    if (ProfileScope.of(context).isCloud)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          'This is your contact email. Your sign-in email is unchanged.',
+                        ),
+                      ),
                     const SizedBox(height: 16),
                     HeritageTextField(
                       label: 'Phone',

@@ -4,7 +4,6 @@ import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/heritage_button.dart';
 import '../models/itinerary.dart';
 import '../services/discovery_scope.dart';
-import '../services/discovery_service.dart';
 import '../services/itinerary_service.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/discovery_layout.dart';
@@ -93,13 +92,21 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
             ),
             const SectionHeader(title: 'Choose your destination'),
             DropdownButtonFormField<String>(
-              initialValue: _destination,
+              key: ValueKey(
+                DiscoveryScope.of(context).discovery.availableDestinations
+                    .join(','),
+              ),
+              initialValue:
+                  DiscoveryScope.of(context).discovery.availableDestinations
+                      .contains(_destination)
+                  ? _destination
+                  : null,
               isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Where would you like to explore?',
                 prefixIcon: Icon(Icons.location_on_outlined),
               ),
-              items: DiscoveryService.destinations
+              items: DiscoveryScope.of(context).discovery.availableDestinations
                   .map(
                     (destination) => DropdownMenuItem(
                       value: destination,
@@ -108,7 +115,10 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
                   )
                   .toList(),
               validator: (value) =>
-                  value == null ? 'Select a destination' : null,
+                  !DiscoveryScope.of(context).discovery.availableDestinations
+                      .contains(value)
+                  ? 'Select a destination'
+                  : null,
               onChanged: _busy
                   ? null
                   : (value) => setState(() => _destination = value),

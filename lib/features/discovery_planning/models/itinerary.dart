@@ -1,3 +1,5 @@
+import '../../../core/firebase/cloud_values.dart';
+
 import 'heritage_place.dart';
 
 class TourPlan {
@@ -19,11 +21,11 @@ class TourPlan {
     'travelStyle': travelStyle,
   };
   factory TourPlan.fromMap(Map<String, Object?> map) => TourPlan(
-    destination: map['destination'] as String,
-    date: DateTime.parse(map['date'] as String),
-    duration: map['duration'] as String,
-    interests: (map['interests'] as List).cast<String>(),
-    travelStyle: map['travelStyle'] as String,
+    destination: CloudValues.text(map['destination']),
+    date: CloudValues.date(map['date']),
+    duration: CloudValues.text(map['duration']),
+    interests: CloudValues.list(map['interests']).whereType<String>().toList(),
+    travelStyle: CloudValues.text(map['travelStyle']),
   );
 }
 
@@ -63,16 +65,13 @@ class Itinerary {
     'createdAt': createdAt.toIso8601String(),
   };
   factory Itinerary.fromMap(Map<String, Object?> map) => Itinerary(
-    id: map['id'] as String,
-    title: map['title'] as String,
+    id: CloudValues.text(map['id']),
+    title: CloudValues.text(map['title']),
     plan: TourPlan.fromMap(map),
-    places: (map['places'] as List)
-        .map(
-          (place) =>
-              HeritagePlace.fromMap(Map<String, Object?>.from(place as Map)),
-        )
+    places: CloudValues.list(map['places'])
+        .map((place) => HeritagePlace.fromMap(CloudValues.map(place)))
         .toList(),
-    isSaved: map['isSaved'] as bool? ?? false,
-    createdAt: DateTime.parse(map['createdAt'] as String),
+    isSaved: CloudValues.boolean(map['isSaved'], false),
+    createdAt: CloudValues.date(map['createdAt']),
   );
 }

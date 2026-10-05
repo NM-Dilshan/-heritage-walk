@@ -11,6 +11,7 @@ abstract final class AuthValidators {
   static String? name(String? value) {
     if ((value?.trim() ?? '').isEmpty) return 'Full name is required';
     if (value!.trim().length < 2) return 'Enter at least 2 characters';
+    if (value.trim().length > 60) return 'Use no more than 60 characters';
     return null;
   }
 

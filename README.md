@@ -1,7 +1,8 @@
 ﻿# HeritageWalk Sri Lanka
 
-Parts 1, 2 and 3: Android Flutter foundation, Material 3 theme, existing assets,
-reusable widgets, future route constants, the account/profile UI, and discovery/planning/saved-content modules.
+Parts 1–8.1: Android Flutter foundation, Material 3 theme, existing assets,
+reusable widgets, account/profile, discovery/planning, navigation/guide,
+group tours, language preferences, local support requests and About.
 
 ## Module ownership
 
@@ -12,11 +13,21 @@ reusable widgets, future route constants, the account/profile UI, and discovery/
 | navigation_guide | N M S H Premarathna | IT23825550 | Navigation, Digital Guide, Facilities & Safety |
 | group_support | R D I H Rajapaksha | IT23841772 | Group Tour, Language & Support Features |
 
-Navigation/guide and group/support directories, plus shared models/services, are reserved
-for later work. Placeholder files preserve reserved directories in version control. No backend or other member module implementations are included.
-Startup: Splash -> Login/Register -> Home. Authentication and profile state are session demos.
-See [Part 2 CRUD documentation](docs/part2_auth_profile_crud.md) and [Part 3 CRUD documentation](docs/part3_discovery_planning_crud.md).
+Production uses Firebase Email/Password Auth and user-scoped Firestore persistence.
+Tests and foundation previews keep isolated in-memory services. Admin place images
+use a selector for 17 packaged photos; Maps/GPS remain deferred. Language selection provides a preference and preview,
+not full app translation. Production discovery uses the Firestore historical-place catalog.
+Deploy the Part 8 rules, bootstrap the intended admin in Firebase Console, then explicitly seed the original catalog.
+Startup: Splash -> restored Home or Login/Register -> Home. Production uses Firebase;
+the default injected-free widget test harness retains the memory demo behavior.
+See [Part 2 CRUD documentation](docs/part2_auth_profile_crud.md) and [Part 3 CRUD documentation](docs/part3_discovery_planning_crud.md) and [Part 4 CRUD documentation](docs/part4_navigation_guide_crud.md) and [Part 5 CRUD documentation](docs/part5_group_tour_crud.md).
 FoundationPreviewScreen is preserved at the development route '/'.
+See [Part 6 language, support and About documentation](docs/part6_language_support_about.md).
+See [Part 7 Firebase architecture, rules deployment and verification](docs/part7_firebase_integration.md).
+See [Part 8 admin, catalog CRUD, bootstrap, seed and manual checklist](docs/part8_admin_place_management.md).
+See [Part 8.1 emergency contacts, packaged-image selector, rules and verification](docs/part8_1_emergency_and_images.md).
+
+See [Part 8.2 Home/Explore separation, real reviews, moderation and verification](docs/part8_2_home_explore_reviews.md).
 
 ## Run
 
@@ -31,8 +42,4 @@ Validate with `flutter analyze` and `flutter test`.
 Build an APK later with `flutter build apk` (requires configured Android SDK).
 The Android launcher icon remains the generated Flutter default; the preview
 uses the official existing logo. All asset constants use relative paths.
-
-
-
-
 

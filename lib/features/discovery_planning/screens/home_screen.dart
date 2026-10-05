@@ -2,80 +2,63 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../../core/routes/app_routes.dart';
-import '../../../shared/widgets/heritage_button.dart';
-import '../../../shared/widgets/heritage_text_field.dart';
+import '../../../shared/widgets/main_bottom_navigation.dart';
+import '../../admin/services/catalog_controller.dart';
 import '../../auth_profile/services/profile_service.dart';
 import '../../auth_profile/widgets/profile_avatar.dart';
 import '../models/heritage_place.dart';
 import '../services/discovery_scope.dart';
-import '../services/discovery_service.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/discovery_layout.dart';
 import '../widgets/place_card.dart';
-import '../widgets/place_preview_sheet.dart';
 import '../widgets/section_header.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
+/// Overview only: selection never depends on Explore's current query/filter.
+List<HeritagePlace> featuredPlaces(Iterable<HeritagePlace> catalog) {
+  final active = catalog.where((p) => p.isActive).toList()
+    ..sort((a, b) {
+      if (a.isFeatured != b.isFeatured) return a.isFeatured ? -1 : 1;
+      final byName = a.name.compareTo(b.name);
+      return byName == 0 ? a.id.compareTo(b.id) : byName;
+    });
+  return active.take(4).toList();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final _search = TextEditingController();
-  bool _initialized = false;
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_initialized) {
-      _search.text = DiscoveryScope.of(context).discovery.query;
-      _initialized = true;
-    }
-  }
-
-  @override
-  void dispose() {
-    _search.dispose();
-    super.dispose();
-  }
-
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    final state = DiscoveryScope.of(context);
-    final discovery = state.discovery;
-    final places = discovery.filteredPlaces;
-    final filtered =
-        discovery.query.trim().isNotEmpty || discovery.category != 'All';
-    final featured = filtered
-        ? <HeritagePlace>[]
-        : places.where((place) => place.isFeatured).toList();
-    final explore = filtered
-        ? places
-        : places.where((place) => !place.isFeatured).toList();
-    Widget cards(List<HeritagePlace> places) => PlaceCardGrid(
-      places: places,
-      isFavorite: state.favorites.isFavorite,
-      onFavorite: state.favorites.toggleFavorite,
-      onTap: (place) => showPlacePreview(context, place),
-    );
+    final state = DiscoveryScope.of(context), discovery = state.discovery;
+    final featured = featuredPlaces(discovery.places);
+    final categories =
+        discovery.places
+            .where((p) => p.isActive)
+            .map((p) => p.category)
+            .toSet()
+            .toList()
+          ..sort();
+    Widget action(String label, IconData icon, String route) =>
+        OutlinedButton.icon(
+          onPressed: () => Navigator.pushNamed(context, route),
+          icon: Icon(icon),
+          label: Text(label),
+        );
     return DiscoveryLayout(
       title: 'HeritageWalk',
-      selectedIndex: ModalRoute.of(context)?.settings.name == AppRoutes.explore
-          ? 1
-          : 0,
+      selectedIndex: 0,
       actions: [
         IconButton(
           tooltip: 'My Favorites',
-          onPressed: () => Navigator.pushNamed(context, AppRoutes.favorites),
           icon: const Icon(Icons.favorite_border),
+          onPressed: () => Navigator.pushNamed(context, AppRoutes.favorites),
         ),
         IconButton(
           tooltip: 'View Profile',
-          onPressed: () => Navigator.pushNamed(context, AppRoutes.profile),
           icon: ProfileAvatar(
             profile: ProfileScope.of(context).profile,
             radius: 18,
           ),
+          onPressed: () => Navigator.pushNamed(context, AppRoutes.profile),
         ),
       ],
       child: Column(
@@ -85,8 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Image.asset(
                 AppAssets.logo,
-                width: 64,
-                height: 64,
+                width: 56,
+                height: 56,
                 semanticLabel: 'HeritageWalk official logo',
               ),
               const SizedBox(width: 16),
@@ -95,104 +78,99 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Welcome to HeritageWalk',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      'Explore Sri Lanka',
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                    const SizedBox(height: 8),
-                    const Text('Discover the heritage of Sri Lanka'),
+                    const Text('Welcome to HeritageWalk'),
+                    const Text(
+                      'Discover heritage, save places and plan your next journey.',
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          HeritageTextField(
-            label: 'Search heritage places...',
-            hint: 'Name, city, district or category',
-            controller: _search,
-            onChanged: discovery.setQuery,
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: discovery.query.isEmpty
-                ? null
-                : IconButton(
-                    tooltip: 'Clear search',
-                    onPressed: () {
-                      _search.clear();
-                      discovery.setQuery('');
-                    },
-                    icon: const Icon(Icons.close),
-                  ),
+          const SizedBox(height: 20),
+          const SectionHeader(title: 'Quick Actions'),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilledButton.icon(
+                onPressed: () => MainBottomNavigation.openExplore(context),
+                icon: const Icon(Icons.explore_outlined),
+                label: const Text('Explore All Places'),
+              ),
+              action('Plan a Tour', Icons.route_outlined, AppRoutes.planTour),
+              action(
+                'My Favorites',
+                Icons.favorite_border,
+                AppRoutes.favorites,
+              ),
+              action(
+                'My Itineraries',
+                Icons.event_note_outlined,
+                AppRoutes.itineraries,
+              ),
+              action(
+                'Group Tours',
+                Icons.groups_outlined,
+                AppRoutes.groupTours,
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: DiscoveryService.categories
-                  .map(
-                    (category) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: CategoryChip(
-                        label: category,
-                        selected: discovery.category == category,
-                        onSelected: () => discovery.setCategory(category),
-                      ),
+          const SizedBox(height: 12),
+          Text(
+            '${state.favorites.getFavorites().length} saved places ? ${state.itineraries.savedItineraries.length} saved itineraries',
+          ),
+          if (categories.isNotEmpty) ...[
+            const SectionHeader(title: 'Explore by Category'),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final category in categories)
+                  CategoryChip(
+                    label: category,
+                    selected: false,
+                    onSelected: () => MainBottomNavigation.openExplore(
+                      context,
+                      category: category,
                     ),
-                  )
-                  .toList(),
+                  ),
+              ],
             ),
+          ],
+          const SectionHeader(
+            title: 'Featured Places',
+            subtitle: 'A few heritage places for your next journey',
           ),
-          const SizedBox(height: 24),
-          Card(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Your next heritage journey',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Choose your destination and interests. Make a plan that feels like you.',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  HeritageButton(
-                    label: 'Plan a Tour',
-                    onPressed: () =>
-                        Navigator.pushNamed(context, AppRoutes.planTour),
-                  ),
-                ],
+          if (discovery.catalogLoading)
+            const Center(child: CircularProgressIndicator()),
+          if (discovery.catalogError != null) ...[
+            Text(discovery.catalogError!),
+            TextButton(
+              onPressed: CatalogScope.of(context).retryCatalog,
+              child: const Text('Reload places'),
+            ),
+          ],
+          if (!discovery.catalogLoading &&
+              discovery.catalogError == null &&
+              featured.isEmpty)
+            const Text(
+              'No active places yet. Explore will show the catalog when it is available.',
+            ),
+          if (!discovery.catalogLoading && discovery.catalogError == null)
+            PlaceCardGrid(
+              places: featured,
+              isFavorite: state.favorites.isFavorite,
+              onFavorite: state.favorites.toggleFavorite,
+              onTap: (place) => Navigator.pushNamed(
+                context,
+                AppRoutes.placeDetails,
+                arguments: place,
               ),
             ),
-          ),
-          if (places.isEmpty)
-            const DiscoveryEmptyState(
-              title: 'No places found',
-              message: 'Try another search or choose a different category.',
-              icon: Icons.search_off,
-            ),
-          if (featured.isNotEmpty) ...[
-            const SectionHeader(title: 'Featured Places'),
-            cards(featured),
-          ],
-          if (explore.isNotEmpty) ...[
-            SectionHeader(
-              title: filtered ? 'Explore Sri Lanka' : 'Popular Heritage Sites',
-              subtitle: filtered
-                  ? '${places.length} matching places'
-                  : 'Find a story worth exploring',
-            ),
-            cards(explore),
-          ],
           const SizedBox(height: 24),
         ],
       ),

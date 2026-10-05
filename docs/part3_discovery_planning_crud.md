@@ -1,4 +1,6 @@
-# Part 3: Discovery, planning and saved-content CRUD
+﻿# Part 3: Discovery, planning and saved-content CRUD
+
+This is the Part 3 implementation snapshot. Part 4 now connects full place details and Map/demo navigation. See [Part 4 documentation](part4_navigation_guide_crud.md) for those integrated flows.
 
 Owner: A B K S I Sithuruwan (IT23839038), discovery_planning module.
 
@@ -81,3 +83,4 @@ facilities, emergency, group tools, language/help implementations and admin UI.
 Run `flutter pub get`, `dart format lib test`, `flutter analyze`, `flutter test`,
 and `flutter build apk --debug`. Part 1 tests are retained; Part 2 authentication
 assertions are adapted to Home. Part 3 includes widget flows and service tests.
+

@@ -23,10 +23,17 @@ class ItineraryService extends ChangeNotifier {
   List<Itinerary> get savedItineraries =>
       List.unmodifiable(_items.values.where((item) => item.isSaved));
   Itinerary? find(String id) => _items[id];
+  void restore(Iterable<Itinerary> items) {
+    _items.removeWhere((_, item) => item.isSaved);
+    for (final item in items) {
+      _items[item.id] = item;
+    }
+    notifyListeners();
+  }
 
   Itinerary generate(TourPlan plan, {Itinerary? previous}) {
     final today = DateTime.now();
-    if (!DiscoveryService.destinations.contains(plan.destination) ||
+    if (!discovery.availableDestinations.contains(plan.destination) ||
         !durations.contains(plan.duration) ||
         plan.interests.isEmpty ||
         plan.interests.any((interest) => !interests.contains(interest)) ||

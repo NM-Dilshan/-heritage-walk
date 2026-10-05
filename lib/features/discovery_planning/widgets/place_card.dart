@@ -1,7 +1,10 @@
+import '../../reviews/widgets/review_widgets.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../models/heritage_place.dart';
+import '../../admin/services/place_image_catalog.dart';
 
 class PlaceImage extends StatelessWidget {
   const PlaceImage({super.key, required this.place});
@@ -11,15 +14,26 @@ class PlaceImage extends StatelessWidget {
     children: [
       AspectRatio(
         aspectRatio: 16 / 8,
-        child: Image.asset(
-          place.imagePath,
-          fit: BoxFit.cover,
-          semanticLabel: place.imagePath == AppAssets.placePlaceholder
-              ? 'Placeholder illustration; not a photo of ${place.name}'
-              : place.name,
-          errorBuilder: (_, error, stack) =>
-              const Center(child: Icon(Icons.image_outlined, size: 48)),
-        ),
+        child: PlaceImageReferences.isRemote(place.imagePath)
+            ? Image.network(
+                place.imagePath,
+                fit: BoxFit.cover,
+                semanticLabel: place.name,
+                loadingBuilder: (context, child, progress) => progress == null
+                    ? child
+                    : const Center(child: CircularProgressIndicator()),
+                errorBuilder: (_, error, stack) => _fallback(),
+              )
+            : Image.asset(
+                PlaceImageReferences.isAsset(place.imagePath)
+                    ? place.imagePath
+                    : AppAssets.placePlaceholder,
+                fit: BoxFit.cover,
+                semanticLabel: place.imagePath == AppAssets.placePlaceholder
+                    ? 'Placeholder illustration; not a photo of ${place.name}'
+                    : place.name,
+                errorBuilder: (_, error, stack) => _fallback(),
+              ),
       ),
       if (place.imagePath == AppAssets.placePlaceholder)
         Positioned(
@@ -35,6 +49,13 @@ class PlaceImage extends StatelessWidget {
           ),
         ),
     ],
+  );
+  Widget _fallback() => Image.asset(
+    AppAssets.placePlaceholder,
+    fit: BoxFit.cover,
+    semanticLabel: 'Place image unavailable; placeholder illustration',
+    errorBuilder: (_, error, stack) =>
+        const Center(child: Icon(Icons.image_outlined, size: 48)),
   );
 }
 
@@ -98,12 +119,7 @@ class PlaceCard extends StatelessWidget {
             children: [
               const Icon(Icons.star_rounded, size: 20),
               const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  '${place.rating} · ${place.reviewCount} demo reviews',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
+              Expanded(child: RatingSummary(placeId: place.id)),
               IconButton(
                 tooltip:
                     '${isFavorite ? 'Remove' : 'Save'} ${place.name} ${isFavorite ? 'from' : 'to'} favorites',

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "117027065275",
+    "project_id": "heritagewalk-sri-lanka",
+    "storage_bucket": "heritagewalk-sri-lanka.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:117027065275:android:dfee5c62567256002d889e",
+        "android_client_info": {
+          "package_name": "lk.heritagewalk.heritage_walk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCL4z7VQgmb9IBRz3hprsb5ykIUkVwGHtg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

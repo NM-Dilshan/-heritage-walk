@@ -1,3 +1,5 @@
+import '../../../core/firebase/cloud_values.dart';
+
 class HeritagePlace {
   const HeritagePlace({
     required this.id,
@@ -15,6 +17,15 @@ class HeritagePlace {
     this.longitude,
     this.openingHours,
     this.entranceFee,
+    this.address = '',
+    this.historicalPeriod = '',
+    this.accessibilityInfo = '',
+    this.highlights = const [],
+    this.createdAt,
+    this.updatedAt,
+    this.createdBy = '',
+    this.updatedBy = '',
+    this.isActive = true,
   });
   final String id,
       name,
@@ -29,6 +40,16 @@ class HeritagePlace {
   final bool isFeatured;
   final double? latitude, longitude;
   final String? openingHours, entranceFee;
+  final String address,
+      historicalPeriod,
+      accessibilityInfo,
+      createdBy,
+      updatedBy;
+  final List<String> highlights;
+  final DateTime? createdAt, updatedAt;
+  final bool isActive;
+  HeritagePlace copyWith({String? name, bool? isActive}) =>
+      HeritagePlace.fromMap({...toMap(), 'name': ?name, 'isActive': ?isActive});
   Map<String, Object?> toMap() => {
     'id': id,
     'name': name,
@@ -45,22 +66,57 @@ class HeritagePlace {
     'longitude': longitude,
     'openingHours': openingHours,
     'entranceFee': entranceFee,
+    'address': address,
+    'historicalPeriod': historicalPeriod,
+    'accessibilityInfo': accessibilityInfo,
+    'highlights': highlights,
+    'createdAt': createdAt?.toIso8601String(),
+    'updatedAt': updatedAt?.toIso8601String(),
+    'createdBy': createdBy,
+    'updatedBy': updatedBy,
+    'isActive': isActive,
   };
   factory HeritagePlace.fromMap(Map<String, Object?> map) => HeritagePlace(
-    id: map['id'] as String,
-    name: map['name'] as String,
-    city: map['city'] as String,
-    district: map['district'] as String,
-    category: map['category'] as String,
-    shortDescription: map['shortDescription'] as String,
-    description: map['description'] as String,
-    imagePath: map['imagePath'] as String,
-    rating: (map['rating'] as num).toDouble(),
-    reviewCount: (map['reviewCount'] as num).toInt(),
-    isFeatured: map['isFeatured'] as bool? ?? false,
-    latitude: (map['latitude'] as num?)?.toDouble(),
-    longitude: (map['longitude'] as num?)?.toDouble(),
-    openingHours: map['openingHours'] as String?,
-    entranceFee: map['entranceFee'] as String?,
+    id: CloudValues.text(map['id']),
+    address: CloudValues.text(map['address']),
+    historicalPeriod: CloudValues.text(map['historicalPeriod']),
+    accessibilityInfo: CloudValues.text(map['accessibilityInfo']),
+    highlights: CloudValues.list(map['highlights'])
+        .whereType<String>()
+        .toList(),
+    createdAt: CloudValues.optionalDate(map['createdAt']),
+    updatedAt: CloudValues.optionalDate(map['updatedAt']),
+    createdBy: CloudValues.text(map['createdBy']),
+    updatedBy: CloudValues.text(map['updatedBy']),
+    isActive: CloudValues.boolean(map['isActive'], true),
+    name: CloudValues.text(map['name']),
+    city: CloudValues.text(map['city']),
+    district: CloudValues.text(map['district']),
+    category: CloudValues.text(map['category']),
+    shortDescription: CloudValues.text(map['shortDescription']),
+    description: CloudValues.text(map['description']),
+    imagePath: CloudValues.text(map['imagePath']),
+    rating: (_finiteNumber(map['rating']) ?? 0),
+    reviewCount: (_finiteNumber(map['reviewCount'])?.toInt() ?? 0),
+    isFeatured: CloudValues.boolean(map['isFeatured'], false),
+    latitude: _coordinate(map['latitude'], 90),
+    longitude: _coordinate(map['longitude'], 180),
+    openingHours: (map['openingHours'] is String
+        ? CloudValues.text(map['openingHours'])
+        : null),
+    entranceFee: (map['entranceFee'] is String
+        ? CloudValues.text(map['entranceFee'])
+        : null),
   );
+  static double? _coordinate(Object? value, double limit) {
+    final number = _finiteNumber(value);
+    return number != null && number.isFinite && number.abs() <= limit
+        ? number
+        : null;
+  }
+
+  static double? _finiteNumber(Object? value) {
+    final number = CloudValues.number(value);
+    return number != null && number.isFinite ? number : null;
+  }
 }

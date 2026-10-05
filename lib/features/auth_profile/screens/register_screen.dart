@@ -1,3 +1,5 @@
+import '../../../core/firebase/backend_error.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/routes/app_routes.dart';
@@ -34,18 +36,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final service = ProfileScope.of(context);
     setState(() => _busy = true);
     try {
-      await service.register(fullName: _name.text, email: _email.text);
+      await service.register(
+        fullName: _name.text,
+        email: _email.text,
+        password: _password.text,
+      );
       if (mounted) {
         Navigator.of(context)
             .pushNamedAndRemoveUntil(AppRoutes.home, (_) => false);
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Unable to create your session. Please try again.'),
-          ),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(backendMessage(error))));
       }
     } finally {
       if (mounted) setState(() => _busy = false);

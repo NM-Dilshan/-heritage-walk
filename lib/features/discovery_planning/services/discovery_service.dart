@@ -4,6 +4,25 @@ import '../../../core/constants/app_assets.dart';
 import '../models/heritage_place.dart';
 
 class DiscoveryService extends ChangeNotifier {
+  DiscoveryService() : places = localPlaces;
+  bool catalogLoading = false;
+  String? catalogError;
+  List<HeritagePlace> places;
+  List<String> get availableDestinations =>
+      places.map((p) => p.city).toSet().toList()..sort();
+  void replaceCatalog(Iterable<HeritagePlace> items) {
+    places = List.unmodifiable(items);
+    catalogLoading = false;
+    catalogError = null;
+    notifyListeners();
+  }
+
+  void setCatalogStatus({bool loading = false, String? error}) {
+    catalogLoading = loading;
+    catalogError = error;
+    notifyListeners();
+  }
+
   static const categories = [
     'All',
     'Ancient Cities',
@@ -43,6 +62,7 @@ class DiscoveryService extends ChangeNotifier {
     return places
         .where(
           (place) =>
+              place.isActive &&
               (category == 'All' || place.category == category) &&
               '${place.name} ${place.city} ${place.district} ${place.category}'
                   .toLowerCase()
@@ -52,8 +72,8 @@ class DiscoveryService extends ChangeNotifier {
   }
 
   // Short neutral descriptions; source links are recorded in Part 3 documentation.
-  // Ratings/review counts are illustrative demo values, not public reviews.
-  final List<HeritagePlace> places = List.unmodifiable([
+  // Legacy numeric fields stay zero; displayed ratings come from real reviews.
+  static final List<HeritagePlace> localPlaces = List.unmodifiable([
     _place(
       'sigiriya',
       'Sigiriya Rock Fortress',
@@ -62,8 +82,6 @@ class DiscoveryService extends ChangeNotifier {
       'Forts',
       'A historic rock fortress with gardens and archaeological remains.',
       true,
-      4.8,
-      124,
     ),
     _place(
       'tooth-temple',
@@ -73,8 +91,6 @@ class DiscoveryService extends ChangeNotifier {
       'Temples',
       'A Buddhist temple in Kandy associated with the sacred tooth relic.',
       true,
-      4.7,
-      98,
     ),
     _place(
       'galle-fort',
@@ -84,8 +100,6 @@ class DiscoveryService extends ChangeNotifier {
       'Forts',
       'A fortified coastal town with historic streets and buildings.',
       true,
-      4.8,
-      112,
     ),
     _place(
       'dambulla',
@@ -95,8 +109,6 @@ class DiscoveryService extends ChangeNotifier {
       'Temples',
       'A Buddhist cave-temple complex with murals and statues.',
       false,
-      4.7,
-      76,
     ),
     _place(
       'polonnaruwa',
@@ -106,8 +118,6 @@ class DiscoveryService extends ChangeNotifier {
       'Ancient Cities',
       'Archaeological remains of a former capital of Sri Lanka.',
       false,
-      4.6,
-      61,
     ),
     _place(
       'anuradhapura',
@@ -117,8 +127,6 @@ class DiscoveryService extends ChangeNotifier {
       'Ancient Cities',
       'A historic sacred city with Buddhist monuments and ancient remains.',
       false,
-      4.7,
-      83,
     ),
     _place(
       'nine-arch',
@@ -128,8 +136,6 @@ class DiscoveryService extends ChangeNotifier {
       'Architecture',
       'A nine-arched railway bridge in the hill country near Ella.',
       false,
-      4.6,
-      54,
     ),
     _place(
       'jaffna-fort',
@@ -139,8 +145,6 @@ class DiscoveryService extends ChangeNotifier {
       'Forts',
       'A historic fort in the city of Jaffna.',
       false,
-      4.5,
-      39,
     ),
   ]);
   static HeritagePlace _place(
@@ -151,8 +155,6 @@ class DiscoveryService extends ChangeNotifier {
     String category,
     String description,
     bool featured,
-    double rating,
-    int reviews,
   ) => HeritagePlace(
     id: id,
     name: name,
@@ -162,8 +164,8 @@ class DiscoveryService extends ChangeNotifier {
     shortDescription: description,
     description: description,
     imagePath: AppAssets.placePlaceholder,
-    rating: rating,
-    reviewCount: reviews,
+    rating: 0,
+    reviewCount: 0,
     isFeatured: featured,
   );
 }

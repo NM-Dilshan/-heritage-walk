@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
+import '../../admin/services/catalog_controller.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../shared/widgets/heritage_app_bar.dart';
 import '../../../shared/widgets/main_bottom_navigation.dart';
@@ -53,6 +54,14 @@ class ProfileScreen extends StatelessWidget {
                   Card(
                     child: Column(
                       children: [
+                        if (CatalogScope.of(context).isAdmin)
+                          _menu(
+                            context,
+                            'Admin Panel',
+                            Icons.admin_panel_settings_outlined,
+                            onTap: () =>
+                                Navigator.pushNamed(context, AppRoutes.admin),
+                          ),
                         _menu(
                           context,
                           'Edit Profile',
@@ -88,12 +97,39 @@ class ProfileScreen extends StatelessWidget {
                           Icons.notifications_outlined,
                           asset: AppAssets.notification,
                         ),
-                        _menu(context, 'Language', Icons.language),
+                        _menu(
+                          context,
+                          'Group Tours',
+                          Icons.groups_outlined,
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.groupTours,
+                          ),
+                        ),
+                        _menu(
+                          context,
+                          'Language',
+                          Icons.language,
+                          onTap: () =>
+                              Navigator.pushNamed(context, AppRoutes.language),
+                        ),
                         _menu(
                           context,
                           'Help & Support',
                           Icons.help_outline,
                           asset: AppAssets.help,
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.helpSupport,
+                          ),
+                        ),
+                        _menu(
+                          context,
+                          'About',
+                          Icons.info_outline,
+                          asset: AppAssets.info,
+                          onTap: () =>
+                              Navigator.pushNamed(context, AppRoutes.about),
                         ),
                         const Divider(height: 1),
                         _menu(
