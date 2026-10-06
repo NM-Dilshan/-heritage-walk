@@ -46,3 +46,5 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+#update the following line to ignore the generated files from the build_runner package
