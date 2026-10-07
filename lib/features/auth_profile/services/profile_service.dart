@@ -4,6 +4,7 @@ import 'dart:async';
 
 import '../../../core/firebase/account_repository.dart';
 import '../../../core/firebase/backend_error.dart';
+import '../../../core/firebase/social_auth.dart';
 import 'auth_validators.dart';
 
 import '../models/user_profile.dart';
@@ -18,6 +19,9 @@ class ProfileService extends ChangeNotifier {
   final AccountRepository? repository;
   bool get isCloud => repository != null;
   Future<void> Function(String?)? onSession;
+
+  /// Foreground sharing cleanup must run while Firebase still owns this UID.
+  Future<void> Function()? beforeSignOut;
   Future<void> ready = Future.value();
   StreamSubscription<String?>? _subscription;
   bool _working = false, _disposed = false;
@@ -87,7 +91,56 @@ class ProfileService extends ChangeNotifier {
   bool _authenticated = false;
   bool get isAuthenticated => _authenticated;
 
+  void _checkIdle() {
+    if (_working) {
+      throw const BackendFailure(
+        'An authentication request is already in progress. Please wait.',
+      );
+    }
+  }
+
+  Future<SocialResult> signInSocial(SocialProvider provider) async {
+    await ready;
+    _checkIdle();
+    final account = repository;
+    if (account is! SocialAccountRepository) {
+      throw const BackendFailure(
+        'Social sign-in is unavailable in this preview.',
+      );
+    }
+    _working = true;
+    try {
+      final result = await (account as SocialAccountRepository).signInSocial(
+        provider,
+      );
+      if (result == SocialResult.cancelled) return result;
+      final profile = await account!.restore();
+      if (profile == null) {
+        throw const BackendFailure(
+          'Unable to complete the request. Please try again.',
+        );
+      }
+      if (_disposed) return SocialResult.cancelled;
+      _profile = profile;
+      await onSession?.call(profile.id);
+      if (!_disposed) {
+        _authenticated = true;
+        lastError = null;
+        notifyListeners();
+      }
+      return result;
+    } catch (error) {
+      await account!.signOut();
+      await _endSession();
+      rethrow;
+    } finally {
+      _working = false;
+    }
+  }
+
   Future<void> signIn(String email, {String password = ''}) async {
+    await ready;
+    _checkIdle();
     if (repository != null) {
       final error =
           AuthValidators.email(email) ?? AuthValidators.password(password);
@@ -115,6 +168,8 @@ class ProfileService extends ChangeNotifier {
     required String email,
     String password = '',
   }) async {
+    await ready;
+    _checkIdle();
     if (repository != null) {
       final error =
           AuthValidators.name(fullName) ??
@@ -163,21 +218,33 @@ class ProfileService extends ChangeNotifier {
   }
 
   Future<void> sendPasswordReset(String email) async {
-    if (repository != null) {
-      if (AuthValidators.email(email) != null) {
-        throw const BackendFailure('Enter a valid email address.');
+    await ready;
+    _checkIdle();
+    final validation = AuthValidators.email(email);
+    if (validation != null) throw BackendFailure(validation);
+    _working = true;
+    try {
+      if (repository != null) {
+        if (AuthValidators.email(email) != null) {
+          throw const BackendFailure('Enter a valid email address.');
+        }
+        await repository!.resetPassword(email.trim());
+        return;
       }
-      await repository!.resetPassword(email.trim());
-      return;
+      // Replace this simulated boundary during backend integration.
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+    } finally {
+      _working = false;
     }
-    // Replace this simulated boundary during backend integration.
-    await Future<void>.delayed(const Duration(milliseconds: 450));
   }
 
   Future<void> signOut() async {
+    await ready;
+    _checkIdle();
     if (repository != null) {
       _working = true;
       try {
+        await beforeSignOut?.call();
         await repository!.signOut();
         await _endSession();
       } finally {
@@ -185,6 +252,7 @@ class ProfileService extends ChangeNotifier {
       }
       return;
     }
+    await beforeSignOut?.call();
     _authenticated = false;
     _profile = demoProfile;
     notifyListeners();

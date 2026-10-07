@@ -15,7 +15,11 @@ class GuideContent {
     'Carry drinking water where appropriate',
     'Keep heritage areas clean',
   ];
-  factory GuideContent.forPlace(HeritagePlace place) {
+  factory GuideContent.forPlace(
+    HeritagePlace place, {
+    String Function(String)? translate,
+  }) {
+    final text = translate ?? (String value) => value;
     final history = switch (place.id) {
       'sigiriya' => 'Sigiriya preserves the remains of a historic rock-top fortress and landscaped gardens.',
       'tooth-temple' => 'Kandy was a royal capital. The Temple of the Sacred Tooth Relic is an important Buddhist cultural site in the city.',
@@ -33,12 +37,14 @@ class GuideContent {
     };
     return GuideContent(
       overview: place.description,
-      history: history,
-      significance: significance,
+      history: history == place.description ? history : text(history),
+      significance: significance == place.description
+          ? significance
+          : text(significance),
       highlights: [
         place.category,
-        'Architectural character',
-        'Cultural significance',
+        text('Architectural character'),
+        text('Cultural significance'),
       ],
     );
   }

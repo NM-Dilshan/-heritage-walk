@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../shared/widgets/heritage_app_bar.dart';
@@ -63,13 +65,13 @@ class DiscoveryEmptyState extends StatelessWidget {
       children: [
         Icon(icon, size: 56, color: Theme.of(context).colorScheme.primary),
         const SizedBox(height: 20),
-        Text(
+        UiText(
           title,
           style: Theme.of(context).textTheme.titleLarge,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
-        Text(message, textAlign: TextAlign.center),
+        UiText(message, textAlign: TextAlign.center),
         if (buttonLabel != null) ...[
           const SizedBox(height: 24),
           HeritageButton(label: buttonLabel!, onPressed: onPressed),

@@ -133,7 +133,7 @@ async function main() {
   await check('DELETE', '/places/admin-place', c.token, null, 200, 'Admin deletes place');
   await check('PATCH', `/users/${c.uid}`, 'owner', { fields: fields({ ...adminProfile, role: 'user' }) }, 200, 'Trusted revocation');
   await check('POST', ':commit', c.token, placeCommit(place, true), 403, 'Revoked admin writes denied');
-  assert.equal(assertions, 91, 'Original Part 7–8 assertions retained');
+  assert.equal(assertions, 91, 'Original Part 7â€“8 assertions retained');
   await check('PATCH', `/users/${c.uid}`, 'owner', { fields: fields(adminProfile) }, 200, 'Restore trusted admin for Part 8.1 fixtures');
   // Synthetic test phone; never seeded into the application or presented as a real service.
   const contact = { id: 'test-contact', name: 'Emulator Test Contact', category: 'other', phoneNumber: '+12025550123',
@@ -225,6 +225,95 @@ async function main() {
   await check('POST', ':runQuery', c.token, { structuredQuery: { from: [{ collectionId: 'reviews', allDescendants: true }] } }, 200, 'Admin can find orphan reviews');
   await check('POST', ':commit', b.token, reviewCommit({ ...review, id: b.uid, userId: b.uid }, true, `/places/review-place/reviews/${b.uid}`), 403, 'Deleted parent cannot receive review');
   await check('DELETE', reviewPath, a.token, null, 200, 'Owner can delete orphan review');
+  assert.equal(assertions, 164, 'All existing Parts 7â€“8.2 assertions remain intact');
+  await check('PATCH', '/groups/livegroup', 'owner', { fields: fields({ ...joined, id: 'livegroup' }) }, 200, 'Local member-only location group fixture');
+  const locationPath = `/groups/livegroup/locations/${a.uid}`;
+  const location = { userId: a.uid, displayName: 'User A', latitude: 6.032, longitude: 80.218 };
+  const locationCommit = (value, path = locationPath, serverTime = true) => ({ writes: [{
+    update: document(path.substring(1), value),
+    ...(serverTime ? { updateTransforms: [{ fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' }] } : {})
+  }] });
+  await check('POST', ':commit', null, locationCommit(location), 403, 'Anonymous GPS write denied');
+  await check('POST', ':commit', b.token, locationCommit(location), 403, 'Member cannot write another member position');
+  await check('POST', ':commit', c.token, locationCommit(location), 403, 'Nonmember admin cannot write member position');
+  await check('POST', ':commit', a.token, locationCommit({ ...location, userId: b.uid }), 403, 'Spoofed GPS userId denied');
+  await check('POST', ':commit', a.token, locationCommit(location), 200, 'Member writes own GPS snapshot');
+  await check('GET', locationPath, a.token, null, 200, 'Member reads own GPS');
+  await check('GET', locationPath, b.token, null, 200, 'Member reads fellow member GPS');
+  await check('GET', locationPath, null, null, 403, 'Anonymous GPS read denied');
+  await check('GET', locationPath, c.token, null, 403, 'Nonmember admin GPS read denied');
+  await check('POST', '/groups/livegroup:runQuery', b.token, { structuredQuery: { from: [{ collectionId: 'locations' }] } }, 200, 'Member queries group GPS snapshots');
+  await check('POST', '/groups/livegroup:runQuery', c.token, { structuredQuery: { from: [{ collectionId: 'locations' }] } }, 403, 'Nonmember admin cannot query group GPS');
+  await check('POST', ':runQuery', c.token, { structuredQuery: { from: [{ collectionId: 'locations', allDescendants: true }] } }, 403, 'Admin cannot enumerate global private GPS');
+  for (const invalid of [{ latitude: 91 }, { latitude: -91 }, { longitude: 181 }, { longitude: -181 }, { latitude: '6.0' }, { longitude: null }, { displayName: '' }, { displayName: 'x'.repeat(81) }, { displayName: 'email@example.com' }, { history: [] }]) {
+    await check('POST', ':commit', a.token, locationCommit({ ...location, ...invalid }), 403, 'Malformed or excessive GPS data denied');
+  }
+  await check('POST', ':commit', a.token, locationCommit({ ...location, updatedAt: '2026-01-01' }, locationPath, false), 403, 'Client timestamp spoof denied');
+  const missingField = { ...location }; delete missingField.latitude;
+  await check('POST', ':commit', a.token, locationCommit(missingField), 403, 'Missing GPS coordinate denied');
+  await check('POST', ':commit', a.token, locationCommit({ ...location, latitude: 6.034 }), 200, 'Own GPS update allowed');
+  await check('DELETE', locationPath, b.token, null, 403, 'Another member cannot stop owner sharing');
+  await check('DELETE', locationPath, c.token, null, 403, 'Nonmember admin cannot delete private GPS');
+  const memberLocationPath = `/groups/livegroup/locations/${b.uid}`;
+  await check('POST', ':commit', b.token, locationCommit({ ...location, userId: b.uid, displayName: 'User B' }, memberLocationPath), 200, 'Second member writes own position');
+  // Both member documents are visible through the same collection query.
+  await check('GET', memberLocationPath, a.token, null, 200, 'A reads B position');
+  const locationQuery = { structuredQuery: { from: [{ collectionId: 'locations' }] } };
+  for (const user of [a, b]) {
+    const result = await check('POST', '/groups/livegroup:runQuery', user.token, locationQuery, 200, 'Both members query whole location collection');
+    const ids = JSON.parse(result.body).filter(row => row.document).map(row => row.document.fields.userId.stringValue).sort();
+    assert.deepEqual(ids, [a.uid, b.uid].sort(), 'Each member receives both UID documents');
+    assertions++;
+  }
+  await check('POST', ':commit', b.token, locationCommit({ ...location, userId: b.uid, displayName: 'User B', latitude: 6.04 }, memberLocationPath), 200, 'B updates only own position');
+  const updatedB = await check('GET', memberLocationPath, a.token, null, 200, 'A receives updated B position');
+  assert.equal(JSON.parse(updatedB.body).fields.latitude.doubleValue, 6.04, 'Other-member read contains new coordinate'); assertions++;
+  await check('DELETE', locationPath, a.token, null, 200, 'A stops sharing by deleting own position');
+  const remaining = await check('POST', '/groups/livegroup:runQuery', b.token, locationQuery, 200, 'B queries after A stops');
+  assert.deepEqual(JSON.parse(remaining.body).filter(row => row.document).map(row => row.document.fields.userId.stringValue), [b.uid], 'Stopping A keeps B document'); assertions++;
+  await check('POST', ':commit', a.token, locationCommit(location), 200, 'A can explicitly restart sharing');
+  await check('PATCH', '/groups/livegroup', 'owner', { fields: fields({ ...group, id: 'livegroup' }) }, 200, 'Local member departure fixture');
+  await check('GET', locationPath, b.token, null, 403, 'Former member GPS read denied');
+  await check('POST', ':commit', b.token, locationCommit({ ...location, userId: b.uid }, memberLocationPath), 403, 'Former member GPS write denied');
+  await check('DELETE', memberLocationPath, b.token, null, 200, 'Former member can erase own last snapshot');
+  await check('DELETE', '/groups/livegroup', 'owner', null, 200, 'Local group deletion fixture');
+  await check('GET', locationPath, a.token, null, 403, 'Deleted group GPS inaccessible');
+  await check('DELETE', locationPath, a.token, null, 200, 'Owner can erase GPS after group deletion');
+  assert.equal(assertions, 212, '200 preserved plus 12 two-member tracking assertions');
+  // Import uses one atomic 17-document transaction. Synthetic fixtures exercise
+  // the same create/update masks without seeding real content or production data.
+  const bulkPlaces = Array.from({ length: 17 }, (_, i) => ({
+    id: `bulk-place-${i}`, name: `Synthetic Bulk Place ${i}`, category: 'Forts',
+    city: 'Test City', district: 'Test District', description: 'Synthetic import fixture',
+    isActive: true, isFeatured: i < 4, latitude: 7.2, longitude: 80.6,
+    createdBy: c.uid, updatedBy: c.uid, rating: 4.5, reviewCount: 2,
+    retainedMetadata: 'preserved',
+  }));
+  const bulkCreate = { writes: bulkPlaces.map(data => ({
+    update: document(`places/${data.id}`, data),
+    updateTransforms: [
+      { fieldPath: 'createdAt', setToServerValue: 'REQUEST_TIME' },
+      { fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' },
+    ],
+  })) };
+  await check('POST', ':commit', a.token, bulkCreate, 403, 'Non-admin 17-place import denied');
+  await check('POST', ':commit', null, bulkCreate, 403, 'Anonymous 17-place import denied');
+  await check('POST', ':commit', c.token, bulkCreate, 200, 'Admin atomic 17-place import succeeds');
+  const bulkFirst = await check('GET', '/places/bulk-place-0', c.token, null, 200, 'Imported record read');
+  const originalAudit = JSON.parse(bulkFirst.body).fields;
+  const bulkUpdate = { writes: bulkPlaces.map(data => ({
+    update: document(`places/${data.id}`, { name: 'Updated predefined metadata', updatedBy: c.uid }),
+    updateMask: { fieldPaths: ['name', 'updatedBy'] },
+    updateTransforms: [{ fieldPath: 'updatedAt', setToServerValue: 'REQUEST_TIME' }],
+  })) };
+  await check('POST', ':commit', a.token, bulkUpdate, 403, 'Non-admin bulk metadata merge denied');
+  await check('POST', ':commit', c.token, bulkUpdate, 200, 'Admin bulk metadata merge succeeds');
+  const bulkAfter = await check('GET', '/places/bulk-place-0', c.token, null, 200, 'Merged import remains readable');
+  const mergedFields = JSON.parse(bulkAfter.body).fields;
+  for (const field of ['createdAt', 'createdBy', 'rating', 'reviewCount', 'retainedMetadata']) {
+    assert.deepEqual(mergedFields[field], originalAudit[field], `${field} survives import merge`);
+  }
+  assert.equal(assertions, 219, '212 existing plus 7 bulk-import security assertions');
   console.log(`Firestore emulator: ${assertions} authorization/persistence assertions passed; no production data touched.`);
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

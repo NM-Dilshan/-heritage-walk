@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../models/itinerary.dart';
@@ -39,7 +41,13 @@ class ItineraryCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text('${itinerary.destination} · ${formatTourDate(itinerary.date)}'),
           const SizedBox(height: 6),
-          Text('${itinerary.duration} · ${itinerary.places.length} stops'),
+          UiText(
+            "{0} · {1} stops",
+            args: [
+              AppLocalizations.text(context, itinerary.duration),
+              itinerary.places.length,
+            ],
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -47,17 +55,17 @@ class ItineraryCard extends StatelessWidget {
               TextButton.icon(
                 onPressed: onView,
                 icon: const Icon(Icons.visibility_outlined),
-                label: const Text('View'),
+                label: const UiText('View'),
               ),
               TextButton.icon(
                 onPressed: onRename,
                 icon: const Icon(Icons.edit_outlined),
-                label: const Text('Rename'),
+                label: const UiText('Rename'),
               ),
               TextButton.icon(
                 onPressed: onDelete,
                 icon: const Icon(Icons.delete_outline),
-                label: const Text('Delete'),
+                label: const UiText('Delete'),
               ),
             ],
           ),

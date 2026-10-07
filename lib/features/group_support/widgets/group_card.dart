@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../models/tour_group.dart';
@@ -35,27 +37,29 @@ class GroupCard extends StatelessWidget {
                 ),
               ),
               PopupMenuButton<String>(
-                tooltip: 'More group actions',
+                tooltip: AppLocalizations.text(context, 'More group actions'),
                 onSelected: (action) => action == 'open' ? onOpen() : onTrack(),
                 itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'open', child: Text('Manage Group')),
-                  PopupMenuItem(value: 'track', child: Text('Open Tracking')),
+                  PopupMenuItem(value: 'open', child: UiText('Manage Group')),
+                  PopupMenuItem(value: 'track', child: UiText('Open Tracking')),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(group.destinationName ?? 'No destination selected'),
+          group.destinationName == null
+              ? const UiText('No destination selected')
+              : Text(group.destinationName!),
           const SizedBox(height: 8),
           Wrap(
             spacing: 12,
             runSpacing: 8,
             children: [
-              Text('${group.members.length} members'),
-              Text(isLeader ? 'You lead this group' : 'Group member'),
-              Text(
+              UiText("{0} members", args: [group.members.length]),
+              UiText(isLeader ? 'You lead this group' : 'Group member'),
+              UiText(
                 group.trackingEnabled
-                    ? 'Demo tracking available'
+                    ? 'Group location sharing available'
                     : 'Tracking disabled',
               ),
             ],
@@ -66,12 +70,12 @@ class GroupCard extends StatelessWidget {
             children: [
               TextButton.icon(
                 icon: const Icon(Icons.groups_outlined),
-                label: const Text('Open Group'),
+                label: const UiText('Open Group'),
                 onPressed: onOpen,
               ),
               TextButton.icon(
                 icon: const Icon(Icons.map_outlined),
-                label: const Text('Track Group'),
+                label: const UiText('Track Group'),
                 onPressed: onTrack,
               ),
             ],

@@ -804,7 +804,7 @@ void packagedImageTests() {
     final repo = InMemoryPlaceRepository();
     await mount(tester, await services(places: repo), AppRoutes.adminPlaces);
     await press(tester, 'Add Place');
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.tap(find.byKey(const ValueKey('place-category-null')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Forts').last);
     await tester.pumpAndSettle();

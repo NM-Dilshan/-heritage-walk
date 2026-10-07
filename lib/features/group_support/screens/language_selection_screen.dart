@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../discovery_planning/widgets/discovery_layout.dart';
@@ -14,13 +16,13 @@ class LanguageSelectionScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
+          UiText(
             'Choose your preferred language',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Your signed-in preference is saved to your account. This preview does not translate the entire app.',
+          const UiText(
+            'Your language updates the app and is saved to your signed-in account.',
           ),
           const SizedBox(height: 24),
           for (final language in service.getAvailableLanguages()) ...[
@@ -31,7 +33,9 @@ class LanguageSelectionScreen extends StatelessWidget {
                 service.setLanguage(language.code);
                 ScaffoldMessenger.of(context).clearSnackBars();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Language preference updated')),
+                  const SnackBar(
+                    content: UiText('Language preference updated'),
+                  ),
                 );
               },
             ),
@@ -43,7 +47,7 @@ class LanguageSelectionScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  UiText(
                     'Preview',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),

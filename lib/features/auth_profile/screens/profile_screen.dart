@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
@@ -167,7 +169,7 @@ class ProfileScreen extends StatelessWidget {
             excludeFromSemantics: true,
             errorBuilder: (_, error, stack) => Icon(icon),
           ),
-    title: Text(title),
+    title: UiText(title),
     trailing: const Icon(Icons.chevron_right),
     onTap: onTap ?? () => showFutureFeature(context),
   );

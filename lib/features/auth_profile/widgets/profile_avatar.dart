@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_profile.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class ProfileAvatar extends StatelessWidget {
   const ProfileAvatar({super.key, required this.profile, this.radius = 42});
@@ -18,22 +19,33 @@ class ProfileAvatar extends StatelessWidget {
         : '${parts.first.characters.first}${parts.length > 1 ? parts.last.characters.first : ''}'
               .toUpperCase();
     final path = profile.photoPath;
-    // Only project asset photos are supported before device integration.
+    final network = path != null && Uri.tryParse(path)?.scheme == 'https';
     return Semantics(
-      label: 'Profile photo for ${profile.fullName}',
+      label:
+          AppLocalizations.maybeOf(context)
+              ?.format('Profile photo for {0}', [profile.fullName]) ??
+          'Profile photo for ${profile.fullName}',
       child: CircleAvatar(
         radius: radius,
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        child: path == null
+        child: path == null || path.isEmpty
             ? Text(initials, style: Theme.of(context).textTheme.headlineMedium)
             : ClipOval(
-                child: Image.asset(
-                  path,
-                  width: radius * 2,
-                  height: radius * 2,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, error, stack) => Text(initials),
-                ),
+                child: network
+                    ? Image.network(
+                        path,
+                        width: radius * 2,
+                        height: radius * 2,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, error, stack) => Text(initials),
+                      )
+                    : Image.asset(
+                        path,
+                        width: radius * 2,
+                        height: radius * 2,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, error, stack) => Text(initials),
+                      ),
               ),
       ),
     );

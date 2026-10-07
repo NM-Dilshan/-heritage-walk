@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
@@ -21,7 +23,7 @@ class _FoundationPreviewScreenState extends State<FoundationPreviewScreen> {
   void _showPreviewMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
+        content: UiText(
           'Foundation preview: application features will be added later.',
         ),
       ),
@@ -68,12 +70,12 @@ class _FoundationPreviewScreenState extends State<FoundationPreviewScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
-                  Text(
+                  UiText(
                     'A journey through heritage',
                     style: textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  UiText(
                     'Discover the stories, culture and natural beauty of Sri Lanka.',
                     style: textTheme.bodyMedium,
                   ),
@@ -106,12 +108,12 @@ class _FoundationPreviewScreenState extends State<FoundationPreviewScreen> {
                             color: Theme.of(context).colorScheme.primary,
                           ),
                           const SizedBox(height: 12),
-                          Text(
+                          UiText(
                             'Preserve every story',
                             style: textTheme.titleMedium,
                           ),
                           const SizedBox(height: 8),
-                          Text(
+                          UiText(
                             'Respect local communities and help protect our heritage for future generations.',
                             style: textTheme.bodyMedium,
                           ),

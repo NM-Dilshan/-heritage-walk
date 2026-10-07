@@ -1,3 +1,6 @@
+import 'package:flutter_localizations/flutter_localizations.dart';
+
+import 'core/localization/app_localizations.dart';
 import 'features/reviews/services/review_controller.dart';
 
 import 'package:flutter/material.dart';
@@ -38,7 +41,8 @@ class HeritageWalkApp extends StatefulWidget {
   State<HeritageWalkApp> createState() => _HeritageWalkAppState();
 }
 
-class _HeritageWalkAppState extends State<HeritageWalkApp> {
+class _HeritageWalkAppState extends State<HeritageWalkApp>
+    with WidgetsBindingObserver {
   late final _services = widget.services ?? AppServices();
   late final _service = _services.profile;
   late final _languageService = _services.language;
@@ -52,6 +56,9 @@ class _HeritageWalkAppState extends State<HeritageWalkApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    if (lifecycle != null) _groupService.sharing.handleLifecycle(lifecycle);
     _wasAuthenticated = _service.isAuthenticated;
     _service.addListener(_authChanged);
   }
@@ -87,7 +94,13 @@ class _HeritageWalkAppState extends State<HeritageWalkApp> {
       },
   };
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _groupService.sharing.handleLifecycle(state);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _service.removeListener(_authChanged);
     _services.dispose();
     super.dispose();
@@ -112,30 +125,41 @@ class _HeritageWalkAppState extends State<HeritageWalkApp> {
                   controller: _services.emergency,
                   child: CatalogScope(
                     controller: _services.catalog,
-                    child: MaterialApp(
-                      navigatorKey: _navigator,
-                      navigatorObservers: [_routeObserver],
-                      builder: (context, child) => _services.sync == null
-                          ? child!
-                          : CloudStatus(
-                              sync: _services.sync!,
-                              child: child!,
-                              onSignOut: () async {
-                                await _service.signOut();
-                              },
-                            ),
-                      title: AppStrings.appName,
-                      debugShowCheckedModeBanner: false,
-                      theme: AppTheme.light,
-                      initialRoute: widget.initialRoute,
-                      // Create exactly one initial route so the preview isn't below splash/login.
-                      onGenerateInitialRoutes: (name) => [
-                        MaterialPageRoute<void>(
-                          settings: RouteSettings(name: name),
-                          builder: _routes[name]!,
-                        ),
-                      ],
-                      routes: _routes,
+                    child: AnimatedBuilder(
+                      animation: _languageService,
+                      builder: (context, _) => MaterialApp(
+                        locale: Locale(_languageService.selectedLanguageCode),
+                        supportedLocales: AppLocalizations.supportedLocales,
+                        localizationsDelegates: const [
+                          AppLocalizations.delegate,
+                          GlobalMaterialLocalizations.delegate,
+                          GlobalWidgetsLocalizations.delegate,
+                          GlobalCupertinoLocalizations.delegate,
+                        ],
+                        navigatorKey: _navigator,
+                        navigatorObservers: [_routeObserver],
+                        builder: (context, child) => _services.sync == null
+                            ? child!
+                            : CloudStatus(
+                                sync: _services.sync!,
+                                child: child!,
+                                onSignOut: () async {
+                                  await _service.signOut();
+                                },
+                              ),
+                        title: AppStrings.appName,
+                        debugShowCheckedModeBanner: false,
+                        theme: AppTheme.light,
+                        initialRoute: widget.initialRoute,
+                        // Create exactly one initial route so the preview isn't below splash/login.
+                        onGenerateInitialRoutes: (name) => [
+                          MaterialPageRoute<void>(
+                            settings: RouteSettings(name: name),
+                            builder: _routes[name]!,
+                          ),
+                        ],
+                        routes: _routes,
+                      ),
                     ),
                   ),
                 ),

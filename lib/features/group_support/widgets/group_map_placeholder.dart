@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../models/tour_group.dart';
@@ -17,7 +19,7 @@ class GroupMapPlaceholder extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Text(
+            child: UiText(
               'Demo group tracking',
               style: Theme.of(context).textTheme.titleLarge,
             ),
@@ -82,7 +84,7 @@ class GroupMapPlaceholder extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                const UiText(
                   'Star: leader | Initial: member | Flag: destination',
                 ),
                 const SizedBox(height: 8),
@@ -90,7 +92,7 @@ class GroupMapPlaceholder extends StatelessWidget {
                   '${visible.length} sharing members shown. Positions are UI illustrations, not geographic locations.',
                 ),
                 const SizedBox(height: 8),
-                const Text('No live GPS or background updates.'),
+                const UiText('No live GPS or background updates.'),
               ],
             ),
           ),

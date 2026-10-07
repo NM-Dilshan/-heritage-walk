@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 class AboutFeatureCard extends StatelessWidget {
@@ -22,9 +24,9 @@ class AboutFeatureCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: Theme.of(context).textTheme.titleMedium),
+                UiText(title, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 6),
-                Text(description),
+                UiText(description),
               ],
             ),
           ),

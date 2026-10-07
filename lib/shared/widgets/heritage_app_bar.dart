@@ -1,3 +1,5 @@
+import '../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 class HeritageAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -18,7 +20,7 @@ class HeritageAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) => AppBar(
-    title: Text(title),
+    title: UiText(title),
     automaticallyImplyLeading: false,
     leading: showBackButton ? BackButton(onPressed: onBack) : null,
     actions: actions,

@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/routes/app_routes.dart';
@@ -48,13 +50,15 @@ class GeneratedItineraryScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  Text('${itinerary.duration} · ${itinerary.travelStyle}'),
+                  Text(
+                    '${AppLocalizations.text(context, itinerary.duration)} · ${AppLocalizations.text(context, itinerary.travelStyle)}',
+                  ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: itinerary.interests
-                        .map((interest) => Chip(label: Text(interest)))
+                        .map((interest) => Chip(label: UiText(interest)))
                         .toList(),
                   ),
                   if (itinerary.isSaved)
@@ -64,7 +68,7 @@ class GeneratedItineraryScreen extends StatelessWidget {
                         children: [
                           Icon(Icons.check_circle_outline),
                           SizedBox(width: 8),
-                          Expanded(child: Text('Saved itinerary')),
+                          Expanded(child: UiText('Saved itinerary')),
                         ],
                       ),
                     ),
@@ -76,7 +80,7 @@ class GeneratedItineraryScreen extends StatelessWidget {
             title: 'Suggested stops',
             subtitle: 'A starting point for your visit, not a complete travel schedule.',
           ),
-          const Text(
+          const UiText(
             'Visit estimates are illustrative. Travel times and opening hours are not checked. The small local catalogue may have only one stop for your destination.',
           ),
           const SizedBox(height: 20),
@@ -95,8 +99,9 @@ class GeneratedItineraryScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Stop ${index + 1}',
+                            UiText(
+                              "Stop {0}",
+                              args: [index + 1],
                               style: Theme.of(context).textTheme.labelLarge,
                             ),
                             const SizedBox(height: 6),
@@ -112,7 +117,7 @@ class GeneratedItineraryScreen extends StatelessWidget {
                             const SizedBox(height: 8),
                             Text(itinerary.places[index].shortDescription),
                             const SizedBox(height: 10),
-                            Text(
+                            UiText(
                               itinerary.places[index].category == 'Architecture'
                                   ? 'Approx. 1 hour'
                                   : 'Approx. 2 hours',
@@ -133,7 +138,9 @@ class GeneratedItineraryScreen extends StatelessWidget {
             onPressed: () {
               if (service.save(itinerary.id)) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Itinerary saved successfully')),
+                  const SnackBar(
+                    content: UiText('Itinerary saved successfully'),
+                  ),
                 );
               }
             },
@@ -157,7 +164,7 @@ class GeneratedItineraryScreen extends StatelessWidget {
                     itinerary.places.map((place) => place.id).join(',')) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text(
+                      content: UiText(
                         'These are the available local stops for your selections. Try another destination or travel style for more variety.',
                       ),
                     ),
@@ -166,7 +173,7 @@ class GeneratedItineraryScreen extends StatelessWidget {
               } catch (_) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text(
+                    content: UiText(
                       'Edit your plan and choose a future date to regenerate.',
                     ),
                   ),
@@ -192,7 +199,7 @@ class GeneratedItineraryScreen extends StatelessWidget {
               (_) => false,
             ),
             icon: const Icon(Icons.bookmarks_outlined),
-            label: const Text('My Itineraries'),
+            label: const UiText('My Itineraries'),
           ),
           const SizedBox(height: 112),
         ],

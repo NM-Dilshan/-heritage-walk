@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../shared/widgets/heritage_button.dart';
@@ -18,7 +20,7 @@ class EmergencySupportScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
+          UiText(
             'Get help when you need it',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
@@ -36,14 +38,14 @@ class EmergencySupportScreen extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onErrorContainer,
                   ),
                   const SizedBox(height: 12),
-                  Text(
+                  UiText(
                     'Emergency contact access',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: Theme.of(context).colorScheme.onErrorContainer,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  UiText(
                     emergency.isCloud
                         ? 'Contacts marked active and verified by an administrator are listed below. Call opens your phone dialer; you decide whether to place the call.'
                         : 'Calling and verified contact data are not connected in this demo. Use verified emergency services when necessary.',
@@ -64,10 +66,10 @@ class EmergencySupportScreen extends StatelessWidget {
             if (emergency.loading)
               const Center(child: CircularProgressIndicator()),
             if (emergency.error != null) ...[
-              Text(emergency.error!),
+              UiText(emergency.error!),
               TextButton(
                 onPressed: emergency.reload,
-                child: const Text('Reload contacts'),
+                child: const UiText('Reload contacts'),
               ),
             ],
             if (!emergency.loading &&
@@ -75,7 +77,7 @@ class EmergencySupportScreen extends StatelessWidget {
                 emergency.contacts.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(24),
-                child: Text('No active verified contacts are available.'),
+                child: UiText('No active verified contacts are available.'),
               ),
             for (final contact in emergency.contacts)
               Padding(
@@ -98,7 +100,7 @@ class EmergencySupportScreen extends StatelessWidget {
             label: 'Share My Location',
             variant: HeritageButtonVariant.outlined,
             onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text(EmergencyService.sharingMessage)),
+              const SnackBar(content: UiText(EmergencyService.sharingMessage)),
             ),
           ),
           const SectionHeader(title: 'Safety Tips'),
@@ -110,7 +112,7 @@ class EmergencySupportScreen extends StatelessWidget {
           ])
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text('- $tip'),
+              child: Text('- ${AppLocalizations.text(context, tip)}'),
             ),
           const SizedBox(height: 96),
         ],

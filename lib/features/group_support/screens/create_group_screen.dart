@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/routes/app_routes.dart';
@@ -44,12 +46,12 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
+          UiText(
             'Bring your travel group together',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 12),
-          const Text(
+          const UiText(
             'You will lead this group. Added demo members are demonstration entries, not real user accounts.',
           ),
           const SizedBox(height: 24),
@@ -57,7 +59,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             label: 'Group Name',
             controller: _name,
             maxLength: 60,
-            validator: GroupTourService.validateName,
+            validator: (value) =>
+                localizeError(context, (GroupTourService.validateName)(value)),
             prefixIcon: const Icon(Icons.groups_outlined),
           ),
           const SizedBox(height: 16),
@@ -73,7 +76,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 ? _destination
                 : null,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Destination'),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.text(context, 'Destination'),
+            ),
             items: DiscoveryScope.of(context).discovery.places
                 .map(
                   (place) => DropdownMenuItem(
@@ -86,11 +91,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   ),
                 )
                 .toList(),
-            validator: (value) =>
-                !DiscoveryScope.of(context).discovery.places
-                    .any((p) => p.id == value)
-                ? 'Select a destination'
-                : null,
+            validator: (value) => localizeError(
+              context,
+              ((value) =>
+                  !DiscoveryScope.of(context).discovery.places
+                      .any((p) => p.id == value)
+                  ? 'Select a destination'
+                  : null)(value),
+            ),
             onChanged: (value) => _destination = value,
           ),
           const SizedBox(height: 28),

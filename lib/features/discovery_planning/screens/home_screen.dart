@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
@@ -41,19 +43,19 @@ class HomeScreen extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: () => Navigator.pushNamed(context, route),
           icon: Icon(icon),
-          label: Text(label),
+          label: UiText(label),
         );
     return DiscoveryLayout(
       title: 'HeritageWalk',
       selectedIndex: 0,
       actions: [
         IconButton(
-          tooltip: 'My Favorites',
+          tooltip: AppLocalizations.text(context, 'My Favorites'),
           icon: const Icon(Icons.favorite_border),
           onPressed: () => Navigator.pushNamed(context, AppRoutes.favorites),
         ),
         IconButton(
-          tooltip: 'View Profile',
+          tooltip: AppLocalizations.text(context, 'View Profile'),
           icon: ProfileAvatar(
             profile: ProfileScope.of(context).profile,
             radius: 18,
@@ -77,12 +79,12 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    UiText(
                       'Explore Sri Lanka',
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                    const Text('Welcome to HeritageWalk'),
-                    const Text(
+                    const UiText('Welcome to HeritageWalk'),
+                    const UiText(
                       'Discover heritage, save places and plan your next journey.',
                     ),
                   ],
@@ -99,9 +101,14 @@ class HomeScreen extends StatelessWidget {
               FilledButton.icon(
                 onPressed: () => MainBottomNavigation.openExplore(context),
                 icon: const Icon(Icons.explore_outlined),
-                label: const Text('Explore All Places'),
+                label: const UiText('Explore All Places'),
               ),
               action('Plan a Tour', Icons.route_outlined, AppRoutes.planTour),
+              action(
+                'Nearby Facilities',
+                Icons.local_hospital_outlined,
+                AppRoutes.facilities,
+              ),
               action(
                 'My Favorites',
                 Icons.favorite_border,
@@ -120,8 +127,12 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            '${state.favorites.getFavorites().length} saved places ? ${state.itineraries.savedItineraries.length} saved itineraries',
+          UiText(
+            "{0} saved places ? {1} saved itineraries",
+            args: [
+              state.favorites.getFavorites().length,
+              state.itineraries.savedItineraries.length,
+            ],
           ),
           if (categories.isNotEmpty) ...[
             const SectionHeader(title: 'Explore by Category'),
@@ -148,16 +159,16 @@ class HomeScreen extends StatelessWidget {
           if (discovery.catalogLoading)
             const Center(child: CircularProgressIndicator()),
           if (discovery.catalogError != null) ...[
-            Text(discovery.catalogError!),
+            UiText(discovery.catalogError!),
             TextButton(
               onPressed: CatalogScope.of(context).retryCatalog,
-              child: const Text('Reload places'),
+              child: const UiText('Reload places'),
             ),
           ],
           if (!discovery.catalogLoading &&
               discovery.catalogError == null &&
               featured.isEmpty)
-            const Text(
+            const UiText(
               'No active places yet. Explore will show the catalog when it is available.',
             ),
           if (!discovery.catalogLoading && discovery.catalogError == null)

@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -12,36 +14,36 @@ class InviteCodeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Invite Code', style: Theme.of(context).textTheme.titleMedium),
+          UiText('Invite Code', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           SelectableText(
             code,
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: 8),
-          const Text('Share this code with your travel group.'),
+          const UiText('Share this code with your travel group.'),
           const SizedBox(height: 4),
-          const Text(
+          const UiText(
             'Signed-in users can join with this code. Keep it private to your travel group.',
           ),
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               icon: const Icon(Icons.copy_outlined),
-              label: const Text('Copy'),
+              label: const UiText('Copy'),
               onPressed: () async {
                 try {
                   await Clipboard.setData(ClipboardData(text: code));
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Invite code copied')),
+                      const SnackBar(content: UiText('Invite code copied')),
                     );
                   }
                 } catch (_) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Unable to copy the invite code.'),
+                        content: UiText('Unable to copy the invite code.'),
                       ),
                     );
                   }

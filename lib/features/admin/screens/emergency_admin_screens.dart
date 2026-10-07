@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/firebase/backend_error.dart';
@@ -21,16 +23,18 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete ${contact.name}?'),
-        content: const Text('This removes the contact from Emergency Support.'),
+        title: UiText("Delete {0}?", args: [contact.name]),
+        content: const UiText(
+          'This removes the contact from Emergency Support.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const UiText('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: const UiText('Delete'),
           ),
         ],
       ),
@@ -41,7 +45,7 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(backendMessage(error))));
+            .showSnackBar(SnackBar(content: UiText(backendMessage(error))));
       }
     }
   }
@@ -61,7 +65,7 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: const UiText('Close'),
         ),
       ],
     ),
@@ -81,12 +85,12 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
                 : () =>
                       Navigator.pushNamed(context, AppRoutes.adminEmergencyAdd),
             icon: const Icon(Icons.add),
-            label: const Text('Add Contact'),
+            label: const UiText('Add Contact'),
           ),
           const SizedBox(height: 16),
           TextField(
-            decoration: const InputDecoration(
-              labelText: 'Search contacts',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.text(context, 'Search contacts'),
               prefixIcon: Icon(Icons.search),
             ),
             onChanged: (value) => setState(() => _query = value),
@@ -95,10 +99,12 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
           DropdownButtonFormField<String>(
             initialValue: _category,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Category filter'),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.text(context, 'Category filter'),
+            ),
             items: [
               for (final category in ['All', ...EmergencyContact.categories])
-                DropdownMenuItem(value: category, child: Text(category)),
+                DropdownMenuItem(value: category, child: UiText(category)),
             ],
             onChanged: (value) => setState(() => _category = value ?? 'All'),
           ),
@@ -111,7 +117,7 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
             Text(service.adminError!),
             TextButton(
               onPressed: service.reloadAdmin,
-              child: const Text('Reload contacts'),
+              child: const UiText('Reload contacts'),
             ),
           ],
           if (service.busy) const LinearProgressIndicator(),
@@ -120,7 +126,7 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
               contacts.isEmpty)
             const Padding(
               padding: EdgeInsets.all(24),
-              child: Text(
+              child: UiText(
                 'No emergency contacts found. Add a contact with an independently verified number.',
               ),
             ),
@@ -142,10 +148,12 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
                       spacing: 8,
                       children: [
                         Chip(
-                          label: Text(contact.isActive ? 'Active' : 'Inactive'),
+                          label: UiText(
+                            contact.isActive ? 'Active' : 'Inactive',
+                          ),
                         ),
                         Chip(
-                          label: Text(
+                          label: UiText(
                             contact.isVerified ? 'Verified' : 'Unverified',
                           ),
                         ),
@@ -156,7 +164,7 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
                       children: [
                         TextButton(
                           onPressed: () => _view(contact),
-                          child: const Text('View'),
+                          child: const UiText('View'),
                         ),
                         TextButton(
                           onPressed: service.busy
@@ -166,13 +174,13 @@ class _AdminEmergencyScreenState extends State<AdminEmergencyScreen> {
                                   AppRoutes.adminEmergencyEdit,
                                   arguments: contact.id,
                                 ),
-                          child: const Text('Edit'),
+                          child: const UiText('Edit'),
                         ),
                         TextButton(
                           onPressed: service.busy
                               ? null
                               : () => _delete(service, contact),
-                          child: const Text('Delete'),
+                          child: const UiText('Delete'),
                         ),
                       ],
                     ),
@@ -272,7 +280,7 @@ class _AdminEmergencyFormState extends State<AdminEmergencyForm> {
         child: !_initialized
             ? service.adminLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : const Text(
+                  : const UiText(
                       'This contact is unavailable. Return to the list.',
                     )
             : Form(
@@ -280,31 +288,42 @@ class _AdminEmergencyFormState extends State<AdminEmergencyForm> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
+                    const UiText(
                       'Enter a number you have checked with an authoritative source. No emergency numbers are supplied automatically.',
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _name,
                       enabled: !_saving,
-                      decoration: const InputDecoration(
-                        labelText: 'Service Name',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.text(
+                          context,
+                          'Service Name',
+                        ),
                       ),
-                      validator: EmergencyValidation.requiredText,
+                      validator: (value) => localizeError(
+                        context,
+                        (EmergencyValidation.requiredText)(value),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       initialValue: _category,
                       isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Category'),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.text(context, 'Category'),
+                      ),
                       items: [
                         for (final category in EmergencyContact.categories)
                           DropdownMenuItem(
                             value: category,
-                            child: Text(category),
+                            child: UiText(category),
                           ),
                       ],
-                      validator: EmergencyValidation.requiredText,
+                      validator: (value) => localizeError(
+                        context,
+                        (EmergencyValidation.requiredText)(value),
+                      ),
                       onChanged: _saving
                           ? null
                           : (value) => setState(() => _category = value),
@@ -314,34 +333,52 @@ class _AdminEmergencyFormState extends State<AdminEmergencyForm> {
                       controller: _phone,
                       enabled: !_saving,
                       keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone Number',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.text(
+                          context,
+                          'Phone Number',
+                        ),
                       ),
-                      validator: EmergencyValidation.phone,
+                      validator: (value) => localizeError(
+                        context,
+                        (EmergencyValidation.phone)(value),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _description,
                       enabled: !_saving,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.text(
+                          context,
+                          'Description',
+                        ),
                       ),
-                      validator: EmergencyValidation.requiredText,
+                      validator: (value) => localizeError(
+                        context,
+                        (EmergencyValidation.requiredText)(value),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _priority,
                       enabled: !_saving,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Priority (0–999; lower first)',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.text(
+                          context,
+                          'Priority (0–999; lower first)',
+                        ),
                       ),
-                      validator: EmergencyValidation.priority,
+                      validator: (value) => localizeError(
+                        context,
+                        (EmergencyValidation.priority)(value),
+                      ),
                     ),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Active'),
+                      title: const UiText('Active'),
                       value: _active,
                       onChanged: _saving
                           ? null
@@ -349,8 +386,8 @@ class _AdminEmergencyFormState extends State<AdminEmergencyForm> {
                     ),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Verified'),
-                      subtitle: const Text(
+                      title: const UiText('Verified'),
+                      subtitle: const UiText(
                         'Mark verified only after checking an authoritative source',
                       ),
                       value: _verified,
@@ -359,7 +396,7 @@ class _AdminEmergencyFormState extends State<AdminEmergencyForm> {
                           : (value) => setState(() => _verified = value),
                     ),
                     if (_error != null)
-                      Text(
+                      UiText(
                         _error!,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.error,
@@ -370,7 +407,7 @@ class _AdminEmergencyFormState extends State<AdminEmergencyForm> {
                       onPressed: _saving || service.busy
                           ? null
                           : () => _save(service),
-                      child: const Text('Save Contact'),
+                      child: const UiText('Save Contact'),
                     ),
                     const SizedBox(height: 24),
                   ],

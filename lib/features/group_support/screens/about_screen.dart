@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
@@ -25,13 +27,13 @@ class AboutScreen extends StatelessWidget {
                   semanticLabel: 'Official HeritageWalk logo',
                 ),
                 const SizedBox(height: 16),
-                Text(
+                UiText(
                   'HeritageWalk Sri Lanka',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                const UiText(
                   "Discover, plan, and experience Sri Lanka's cultural and historical heritage through one connected travel experience.",
                   textAlign: TextAlign.center,
                 ),
@@ -40,13 +42,13 @@ class AboutScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        Text('Our Purpose', style: Theme.of(context).textTheme.titleLarge),
+        UiText('Our Purpose', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
-        const Text(
-          'Find heritage destinations, plan tours, read digital guides, manage saved content and explore with groups. Navigation and group tracking currently use demo visualizations.',
+        const UiText(
+          'Find heritage places, plan tours, read guides and explore with groups using real GPS and route previews.',
         ),
         const SizedBox(height: 24),
-        Text('Key Features', style: Theme.of(context).textTheme.titleLarge),
+        UiText('Key Features', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
         for (final feature in const [
           AboutFeatureCard(
@@ -68,33 +70,36 @@ class AboutScreen extends StatelessWidget {
           ),
           AboutFeatureCard(
             title: 'Navigation',
-            description: 'Preview demo routes and estimates. Live maps and GPS are not integrated.',
+            description: 'Preview real walking or driving routes and follow your current GPS position.',
             icon: Icons.route_outlined,
           ),
           AboutFeatureCard(
             title: 'Group Tours',
-            description: 'Manage saved groups and members with invite codes and demo tracking.',
+            description: 'Manage groups and invite members. Share current location only with explicit foreground consent.',
             icon: Icons.groups_outlined,
           ),
           AboutFeatureCard(
             title: 'Safety Support',
-            description: 'Access emergency guidance and demonstration facility information.',
+            description: 'Access verified emergency contacts and OpenStreetMap nearby facilities.',
             icon: Icons.health_and_safety_outlined,
           ),
         ]) ...[feature, const SizedBox(height: 12)],
         const SizedBox(height: 12),
-        Text('Academic Project', style: Theme.of(context).textTheme.titleLarge),
+        UiText(
+          'Academic Project',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         const SizedBox(height: 12),
-        const Text(
+        const UiText(
           'HeritageWalk Sri Lanka is a university Human–Computer Interaction project exploring accessible heritage travel experiences.',
         ),
         const SizedBox(height: 24),
-        Text('Version 1.0.0', style: Theme.of(context).textTheme.titleMedium),
+        UiText('Version 1.0.0', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 24),
-        Text('Data Notice', style: Theme.of(context).textTheme.titleLarge),
+        UiText('Data Notice', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
-        const Text(
-          'Signed-in profile and saved content are stored in Firebase. The place catalog, route previews and tracking map use demonstration content. Support requests are academic records and are not sent to a real team. Maps, GPS and cloud photo uploads are deferred.',
+        const UiText(
+          'Profile and saved content use Firebase. Map tiles and routes need internet. Individual GPS is not stored; group snapshots require consent. Support requests are academic records, not monitored messages.',
         ),
         const SizedBox(height: 24),
         Wrap(
@@ -104,11 +109,11 @@ class AboutScreen extends StatelessWidget {
             OutlinedButton(
               onPressed: () =>
                   Navigator.pushNamed(context, AppRoutes.helpSupport),
-              child: const Text('Help & Support'),
+              child: const UiText('Help & Support'),
             ),
             OutlinedButton(
               onPressed: () => Navigator.pushNamed(context, AppRoutes.language),
-              child: const Text('Language'),
+              child: const UiText('Language'),
             ),
             FilledButton(
               onPressed: () => Navigator.pushNamedAndRemoveUntil(
@@ -116,7 +121,7 @@ class AboutScreen extends StatelessWidget {
                 AppRoutes.home,
                 (_) => false,
               ),
-              child: const Text('Back to Home'),
+              child: const UiText('Back to Home'),
             ),
           ],
         ),

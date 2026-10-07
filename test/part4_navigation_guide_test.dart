@@ -1,3 +1,7 @@
+import 'support/part9_fakes.dart';
+import 'support/part91_fakes.dart';
+
+import 'package:heritage_walk/core/firebase/app_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heritage_walk/main.dart';
@@ -28,8 +32,11 @@ Future<HeritagePlace> launchPlace(
   WidgetTester tester,
   String route, {
   int placeIndex = 0,
+  AppServices? services,
 }) async {
-  await tester.pumpWidget(const HeritageWalkApp(initialRoute: AppRoutes.home));
+  await tester.pumpWidget(
+    HeritageWalkApp(services: services, initialRoute: AppRoutes.home),
+  );
   await tester.pumpAndSettle();
   final context = tester.element(find.byType(HomeScreen));
   final place = DiscoveryScope.of(context).discovery.places[placeIndex];
@@ -79,7 +86,7 @@ void main() {
       expect(find.byType(PlaceDetailsScreen), findsOneWidget);
       await tapText(tester, 'Start Navigation');
       expect(find.byType(NavigationScreen), findsOneWidget);
-      expect(find.text('Demo route preview'), findsOneWidget);
+      expect(find.text('Route Guidance'), findsOneWidget);
       await tester.pageBack();
       await tester.pumpAndSettle();
       await tapText(tester, 'Digital Guide');
@@ -88,25 +95,33 @@ void main() {
     },
   );
   testWidgets(
-    'Map landing selects a destination and mode updates the deterministic estimate',
+    'Map landing selects a destination and mode loads routed estimates',
     (tester) async {
       await tester.pumpWidget(
-        const HeritageWalkApp(initialRoute: AppRoutes.map),
+        HeritageWalkApp(
+          services: navigationHarness(),
+          initialRoute: AppRoutes.map,
+        ),
       );
       await tester.pumpAndSettle();
       expect(find.text('Choose a destination'), findsOneWidget);
-      expect(find.text('Demo route preview'), findsNothing);
+      expect(find.text('Route Guidance'), findsOneWidget);
       await press(tester, find.byType(DropdownButtonFormField<String>));
       await tapText(tester, 'Galle Fort');
-      expect(find.text('Demo time: 15 min'), findsOneWidget);
+      expect(find.text('Estimated time: 10 min'), findsOneWidget);
       await press(tester, find.widgetWithText(ChoiceChip, 'Walking'));
-      expect(find.text('Demo time: 58 min'), findsOneWidget);
-      await tapText(tester, 'Start Demo Navigation');
-      expect(find.text('Demo navigation active'), findsOneWidget);
-      expect(find.text('Demo navigation started'), findsOneWidget);
+      expect(find.text('Estimated time: 58 min'), findsOneWidget);
+      await tapText(tester, 'Start Route Guidance');
+      expect(find.text('Route guidance active'), findsOneWidget);
+      expect(
+        find.text(
+          'Route preview with live GPS. No voice or turn-by-turn instructions.',
+        ),
+        findsOneWidget,
+      );
       await tapText(tester, 'End Navigation');
-      expect(find.text('Demo navigation active'), findsNothing);
-      expect(find.text('Start Demo Navigation'), findsOneWidget);
+      expect(find.text('Route guidance active'), findsNothing);
+      expect(find.text('Start Route Guidance'), findsOneWidget);
     },
   );
   testWidgets('Missing and wrong place arguments use safe choosers', (
@@ -226,32 +241,35 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
       await tapText(tester, 'Navigate to Place');
-      expect(find.text('Demo route preview'), findsOneWidget);
+      expect(find.text('Route Guidance'), findsOneWidget);
       await press(tester, find.byTooltip('Emergency Support'));
       expect(find.text('Get help when you need it'), findsOneWidget);
     },
   );
   testWidgets(
-    'Facilities filter/search and directions give integration feedback',
+    'Facilities filter/search and navigation use isolated real-format OSM results',
     (tester) async {
-      await launchPlace(tester, AppRoutes.facilities);
-      expect(find.byType(FacilityCard), findsNWidgets(8));
-      await press(tester, find.widgetWithText(ChoiceChip, 'Food'));
-      expect(find.byType(FacilityCard), findsNWidgets(2));
+      final services = AppServices(
+        location: FakeGps(),
+        routing: FakeRouting(),
+        facilities: FakeNearbyFacilityService(),
+      );
+      await launchPlace(tester, AppRoutes.facilities, services: services);
+      expect(find.byType(FacilityCard), findsNWidgets(3));
+      await press(tester, find.widgetWithText(ChoiceChip, 'Restaurant / Food'));
+      expect(find.byType(FacilityCard), findsNWidgets(3));
       await tester.enterText(
         find.widgetWithText(HeritageTextField, 'Search facilities'),
         'cafe',
       );
       await tester.pumpAndSettle();
       expect(find.byType(FacilityCard), findsOneWidget);
-      expect(find.text('Demo Cafe'), findsOneWidget);
-      await tapText(tester, 'Directions');
-      expect(
-        find.text(
-          'Live facility directions will be available after map integration.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text('Test Cafe'), findsWidgets);
+      await tapText(tester, 'Navigate');
+      expect(find.byType(NavigationScreen), findsOneWidget);
+      expect(services.navigation.navigation.destination!.id, 'osm/node/8');
+      await tester.pageBack();
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.widgetWithText(HeritageTextField, 'Search facilities'),
         'missing',
@@ -284,7 +302,7 @@ void main() {
       await tapText(tester, 'Share My Location');
       expect(
         find.text(
-          'Live location sharing will be available after location integration.',
+          'To share location, open a group and start sharing in Group Tracking.',
         ),
         findsOneWidget,
       );
@@ -341,4 +359,13 @@ void main() {
       expect(state.navigation.isActive, isFalse);
     },
   );
+}
+
+AppServices navigationHarness() {
+  final gps = FakeGps();
+  final services = AppServices(location: gps, routing: FakeRouting());
+  services.discovery.discovery.replaceCatalog(
+    services.discovery.discovery.places.map(coordinatePlace).toList(),
+  );
+  return services;
 }

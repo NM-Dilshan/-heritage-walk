@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/firebase/backend_error.dart';
@@ -12,16 +14,20 @@ class RatingSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final feed =
         ReviewScope.maybeOf(context)?.feed(placeId) ?? const ReviewFeed();
-    return Text(
+    return UiText(
       feed.loading
           ? 'Ratings loading?'
           : feed.error != null
           ? 'Ratings unavailable'
           : feed.reviewCount == 0
           ? 'No reviews'
-          : '? ${feed.averageRating.toStringAsFixed(1)} (${feed.reviewCount})',
+          : '★ {0} ({1})',
+      args: [feed.averageRating.toStringAsFixed(1), feed.reviewCount],
       semanticsLabel: feed.reviewCount > 0
-          ? 'Average rating ${feed.averageRating.toStringAsFixed(1)} out of 5 from ${feed.reviewCount} reviews'
+          ? uiFormat(context, 'Average rating {0} out of 5 from {1} reviews', [
+              feed.averageRating.toStringAsFixed(1),
+              feed.reviewCount,
+            ])
           : null,
     );
   }
@@ -52,7 +58,7 @@ class _ReviewSectionState extends State<ReviewSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 24),
-        Text(
+        UiText(
           'Reviews & Ratings',
           style: Theme.of(context).textTheme.titleLarge,
         ),
@@ -60,12 +66,14 @@ class _ReviewSectionState extends State<ReviewSection> {
         RatingSummary(placeId: widget.placeId),
         if (feed.reviewCount > 0)
           Semantics(
-            label: '${feed.averageRating.toStringAsFixed(1)} stars out of 5',
+            label: uiFormat(context, '{0} stars out of 5', [
+              feed.averageRating.toStringAsFixed(1),
+            ]),
             child: ExcludeSemantics(
               child: Text(
                 List.generate(
                   5,
-                  (i) => i < feed.averageRating.round() ? '?' : '?',
+                  (i) => i < feed.averageRating.round() ? '★' : '☆',
                 ).join(),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
@@ -77,20 +85,20 @@ class _ReviewSectionState extends State<ReviewSection> {
             child: Center(child: CircularProgressIndicator()),
           ),
         if (feed.error != null) ...[
-          Text(feed.error!),
+          UiText(feed.error!),
           TextButton(
             onPressed: () => controller.reload(widget.placeId),
-            child: const Text('Reload reviews'),
+            child: const UiText('Reload reviews'),
           ),
         ],
         if (!feed.loading && feed.error == null && feed.reviews.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Text(
+            child: UiText(
               'No reviews yet. Be the first to share your experience.',
             ),
           ),
-        if (!controller.canWrite) const Text('Sign in to write a review.'),
+        if (!controller.canWrite) const UiText('Sign in to write a review.'),
         if (controller.canWrite &&
             available &&
             !feed.loading &&
@@ -100,10 +108,10 @@ class _ReviewSectionState extends State<ReviewSection> {
                 ? null
                 : () => editReview(context, widget.placeId, own),
             icon: const Icon(Icons.rate_review_outlined),
-            label: Text(own == null ? 'Write a Review' : 'Edit Review'),
+            label: UiText(own == null ? 'Write a Review' : 'Edit Review'),
           ),
         if (!available)
-          const Text('This place is unavailable for new or edited reviews.'),
+          const UiText('This place is unavailable for new or edited reviews.'),
         for (final review in feed.reviews)
           Card(
             child: Padding(
@@ -116,8 +124,10 @@ class _ReviewSectionState extends State<ReviewSection> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   Text(
-                    '${'?' * review.rating}${'?' * (5 - review.rating)} ? ${review.rating}/5',
-                    semanticsLabel: '${review.rating} out of 5 stars',
+                    '${'★' * review.rating}${'☆' * (5 - review.rating)} · ${review.rating}/5',
+                    semanticsLabel: uiFormat(context, '{0} stars out of 5', [
+                      review.rating,
+                    ]),
                   ),
                   const SizedBox(height: 8),
                   Text(review.comment),
@@ -132,7 +142,7 @@ class _ReviewSectionState extends State<ReviewSection> {
                           ? null
                           : () => confirmReviewDelete(context, review),
                       icon: const Icon(Icons.delete_outline),
-                      label: const Text('Delete Review'),
+                      label: const UiText('Delete Review'),
                     ),
                 ],
               ),
@@ -204,7 +214,7 @@ class _ReviewFormState extends State<_ReviewForm> {
   Widget build(BuildContext context) => PopScope(
     canPop: !_saving,
     child: AlertDialog(
-      title: Text(widget.existing == null ? 'Write a Review' : 'Edit Review'),
+      title: UiText(widget.existing == null ? 'Write a Review' : 'Edit Review'),
       content: SingleChildScrollView(
         child: Form(
           key: _form,
@@ -215,19 +225,25 @@ class _ReviewFormState extends State<_ReviewForm> {
               DropdownButtonFormField<int>(
                 initialValue: _rating,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Rating'),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.text(context, 'Rating'),
+                ),
                 items: [
                   for (var i = 1; i <= 5; i++)
                     DropdownMenuItem(
                       value: i,
-                      child: Text('$i ${i == 1 ? 'star' : 'stars'}'),
+                      child: UiText('{0} stars', args: [i]),
                     ),
                 ],
                 onChanged: _saving
                     ? null
                     : (value) => setState(() => _rating = value),
-                validator: (value) =>
-                    value == null ? 'Choose a rating from 1 to 5.' : null,
+                validator: (value) => localizeError(
+                  context,
+                  ((value) => value == null
+                      ? 'Choose a rating from 1 to 5.'
+                      : null)(value),
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -235,11 +251,16 @@ class _ReviewFormState extends State<_ReviewForm> {
                 enabled: !_saving,
                 maxLines: 4,
                 maxLength: PlaceReview.maxCommentLength,
-                decoration: const InputDecoration(labelText: 'Your experience'),
-                validator: (value) =>
-                    PlaceReview.validate(_rating ?? 1, value ?? ''),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.text(context, 'Your experience'),
+                ),
+                validator: (value) => localizeError(
+                  context,
+                  ((value) =>
+                      PlaceReview.validate(_rating ?? 1, value ?? ''))(value),
+                ),
               ),
-              if (_error != null) Text(_error!),
+              if (_error != null) UiText(_error!),
               if (_saving) const LinearProgressIndicator(),
             ],
           ),
@@ -248,11 +269,11 @@ class _ReviewFormState extends State<_ReviewForm> {
       actions: [
         TextButton(
           onPressed: _saving ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const UiText('Cancel'),
         ),
         FilledButton(
           onPressed: _saving ? null : _save,
-          child: const Text('Save Review'),
+          child: const UiText('Save Review'),
         ),
       ],
     ),
@@ -268,18 +289,19 @@ Future<void> confirmReviewDelete(
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('Delete Review?'),
-      content: Text(
-        'Delete the review by ${PlaceReview.publicName(review.userDisplayName)}? This cannot be undone.',
+      title: const UiText('Delete Review?'),
+      content: UiText(
+        "Delete the review by {0}? This cannot be undone.",
+        args: [PlaceReview.publicName(review.userDisplayName)],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, false),
-          child: const Text('Cancel'),
+          child: const UiText('Cancel'),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(dialogContext, true),
-          child: const Text('Delete'),
+          child: const UiText('Delete'),
         ),
       ],
     ),
@@ -290,7 +312,7 @@ Future<void> confirmReviewDelete(
   } catch (error) {
     if (context.mounted) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(backendMessage(error))));
+          .showSnackBar(SnackBar(content: UiText(backendMessage(error))));
     }
   }
 }

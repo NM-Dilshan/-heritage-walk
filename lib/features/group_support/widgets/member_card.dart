@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../models/group_member.dart';
@@ -28,7 +30,7 @@ class MemberCard extends StatelessWidget {
               ),
               if (onRemove != null)
                 IconButton(
-                  tooltip: 'Remove ${member.name}',
+                  tooltip: uiFormat(context, 'Remove {0}', [member.name]),
                   icon: Icon(
                     Icons.person_remove_outlined,
                     color: Theme.of(context).colorScheme.error,
@@ -47,30 +49,12 @@ class MemberCard extends StatelessWidget {
                   label: 'Leader',
                   icon: Icons.star_outline,
                 ),
-              MemberStatusChip(
-                label: member.isOnline ? 'Online (demo)' : 'Offline (demo)',
-                icon: member.isOnline
-                    ? Icons.check_circle_outline
-                    : Icons.offline_bolt_outlined,
-              ),
-              MemberStatusChip(
-                label: member.isSharingLocation
-                    ? 'Sharing On (demo)'
-                    : 'Sharing Off',
-                icon: member.isSharingLocation
-                    ? Icons.location_on_outlined
-                    : Icons.location_off_outlined,
+              const MemberStatusChip(
+                label: 'Check Group Tracking for live sharing status.',
+                icon: Icons.location_on_outlined,
               ),
             ],
           ),
-          if (member.lastUpdated != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                'Demo updated at ${member.lastUpdated!.hour.toString().padLeft(2, '0')}:${member.lastUpdated!.minute.toString().padLeft(2, '0')}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
         ],
       ),
     ),

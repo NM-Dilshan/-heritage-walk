@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../discovery_planning/widgets/discovery_layout.dart';
@@ -46,8 +48,8 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextField(
-            decoration: const InputDecoration(
-              labelText: 'Search reviews',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.text(context, 'Search reviews'),
               prefixIcon: Icon(Icons.search),
             ),
             onChanged: (value) => setState(() => _query = value),
@@ -57,9 +59,11 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
             key: ValueKey(selectedPlace),
             initialValue: selectedPlace,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Place filter'),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.text(context, 'Place filter'),
+            ),
             items: [
-              const DropdownMenuItem(value: 'All', child: Text('All places')),
+              const DropdownMenuItem(value: 'All', child: UiText('All places')),
               for (final id in ids)
                 DropdownMenuItem(
                   value: id,
@@ -74,7 +78,7 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
             Text(controller.adminError!),
             TextButton(
               onPressed: controller.reloadAdmin,
-              child: const Text('Reload reviews'),
+              child: const UiText('Reload reviews'),
             ),
           ],
           if (!controller.adminLoading &&
@@ -82,7 +86,7 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
               reviews.isEmpty)
             const Padding(
               padding: EdgeInsets.all(20),
-              child: Text('No reviews match this view.'),
+              child: UiText('No reviews match this view.'),
             ),
           for (final review in reviews)
             Card(
@@ -96,7 +100,7 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(PlaceReview.publicName(review.userDisplayName)),
-                    Text('${review.rating}/5 stars'),
+                    UiText("{0}/5 stars", args: [review.rating]),
                     Text(review.comment),
                     if (review.createdAt != null)
                       Text(reviewDate(review.createdAt!)),
@@ -109,7 +113,7 @@ class _AdminReviewsScreenState extends State<AdminReviewsScreen> {
                               moderate: true,
                             ),
                       icon: const Icon(Icons.delete_outline),
-                      label: const Text('Delete Review'),
+                      label: const UiText('Delete Review'),
                     ),
                   ],
                 ),

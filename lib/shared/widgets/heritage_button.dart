@@ -1,3 +1,5 @@
+import '../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import 'heritage_loading.dart';
@@ -24,7 +26,7 @@ class HeritageButton extends StatelessWidget {
     final callback = enabled && !isLoading ? onPressed : null;
     final child = isLoading
         ? const HeritageLoading(size: 20)
-        : Text(label, textAlign: TextAlign.center);
+        : UiText(label, textAlign: TextAlign.center);
     return variant == HeritageButtonVariant.primary
         ? FilledButton(onPressed: callback, child: child)
         : OutlinedButton(onPressed: callback, child: child);

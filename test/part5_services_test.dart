@@ -77,28 +77,31 @@ void main() {
       throwsStateError,
     );
   });
-  test('Sharing controls only current user and refresh is deterministic', () {
-    final group = service.createGroup('Friends', discovery.places.first);
-    final member = service.addMember(group.id, 'Amal');
-    expect(
-      () => service.toggleMemberLocationSharing(group.id, member.id, false),
-      throwsStateError,
-    );
-    service.toggleMemberLocationSharing(group.id, profile.profile.id, true);
-    final before = service.getGroupById(group.id)!.members.first;
-    service.refreshTracking(group.id);
-    expect(
-      service.getGroupById(group.id)!.members.first.relativeX,
-      closeTo(before.relativeX! + .04, .00001),
-    );
-    service.toggleMemberLocationSharing(group.id, profile.profile.id, false);
-    final frozen = service.getGroupById(group.id)!.members.first;
-    service.refreshTracking(group.id);
-    expect(
-      service.getGroupById(group.id)!.members.first.relativeX,
-      frozen.relativeX,
-    );
-  });
+  test(
+    'Sharing controls only current user and refresh never fabricates movement',
+    () {
+      final group = service.createGroup('Friends', discovery.places.first);
+      final member = service.addMember(group.id, 'Amal');
+      expect(
+        () => service.toggleMemberLocationSharing(group.id, member.id, false),
+        throwsStateError,
+      );
+      service.toggleMemberLocationSharing(group.id, profile.profile.id, true);
+      final before = service.getGroupById(group.id)!.members.first;
+      service.refreshTracking(group.id);
+      expect(
+        service.getGroupById(group.id)!.members.first.relativeX,
+        before.relativeX,
+      );
+      service.toggleMemberLocationSharing(group.id, profile.profile.id, false);
+      final frozen = service.getGroupById(group.id)!.members.first;
+      service.refreshTracking(group.id);
+      expect(
+        service.getGroupById(group.id)!.members.first.relativeX,
+        frozen.relativeX,
+      );
+    },
+  );
   test('Validation and map serialization preserve group/member data', () {
     expect(
       () => service.createGroup('', discovery.places.first),

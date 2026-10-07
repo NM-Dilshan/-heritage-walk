@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 class SectionHeader extends StatelessWidget {
@@ -10,14 +12,14 @@ class SectionHeader extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        UiText(
           title,
           style: Theme.of(context).textTheme.titleLarge
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
         if (subtitle != null) ...[
           const SizedBox(height: 4),
-          Text(subtitle!, style: Theme.of(context).textTheme.bodyMedium),
+          UiText(subtitle!, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ],
     ),

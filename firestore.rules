@@ -171,6 +171,24 @@ service cloud.firestore {
           && validMember(request.resource.data.members[request.auth.uid], request.auth.uid, false);
       }
     }
+    function groupLocationMember(groupId) {
+      return signedIn() && exists(/databases/$(database)/documents/groups/$(groupId))
+        && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.memberIds;
+    }
+    match /groups/{groupId}/locations/{uid} {
+      allow read: if groupLocationMember(groupId);
+      allow create, update: if owner(uid) && groupLocationMember(groupId)
+        && request.resource.data.keys().hasOnly(['userId', 'displayName', 'latitude', 'longitude', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['userId', 'displayName', 'latitude', 'longitude', 'updatedAt'])
+        && request.resource.data.userId == uid
+        && request.resource.data.displayName is string && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 80 && !request.resource.data.displayName.matches('.*@.*')
+        && request.resource.data.latitude is number && request.resource.data.latitude >= -90 && request.resource.data.latitude <= 90
+        && request.resource.data.longitude is number && request.resource.data.longitude >= -180 && request.resource.data.longitude <= 180
+        && request.resource.data.updatedAt == request.time;
+      // Former members can erase only their own snapshot after leaving.
+      allow delete: if owner(uid);
+    }
     match /groupInvites/{code} {
       // Code holders may resolve an invite; enumeration is forbidden.
       allow get: if signedIn();

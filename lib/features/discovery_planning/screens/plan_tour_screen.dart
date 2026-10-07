@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/routes/app_routes.dart';
@@ -65,7 +67,7 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
+            content: UiText(
               'Please check your selections and choose a future date.',
             ),
           ),
@@ -86,7 +88,7 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
+            UiText(
               'Create a personalized heritage journey',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
@@ -102,8 +104,11 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
                   ? _destination
                   : null,
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Where would you like to explore?',
+              decoration: InputDecoration(
+                labelText: AppLocalizations.text(
+                  context,
+                  'Where would you like to explore?',
+                ),
                 prefixIcon: Icon(Icons.location_on_outlined),
               ),
               items: DiscoveryScope.of(context).discovery.availableDestinations
@@ -114,11 +119,14 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
                     ),
                   )
                   .toList(),
-              validator: (value) =>
-                  !DiscoveryScope.of(context).discovery.availableDestinations
-                      .contains(value)
-                  ? 'Select a destination'
-                  : null,
+              validator: (value) => localizeError(
+                context,
+                ((value) =>
+                    !DiscoveryScope.of(context).discovery.availableDestinations
+                        .contains(value)
+                    ? 'Select a destination'
+                    : null)(value),
+              ),
               onChanged: _busy
                   ? null
                   : (value) => setState(() => _destination = value),
@@ -126,23 +134,25 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
             const SectionHeader(title: 'When are you going?'),
             FormField<DateTime>(
               initialValue: _date,
-              validator: (value) {
-                if (value == null) return 'Select a date';
-                final now = DateTime.now();
-                return DateUtils.dateOnly(value)
-                        .isBefore(DateUtils.dateOnly(now))
-                    ? 'Choose today or a future date'
-                    : null;
-              },
+              validator: (value) => localizeError(
+                context,
+                ((value) {
+                  if (value == null) return 'Select a date';
+                  final now = DateTime.now();
+                  return DateUtils.dateOnly(value)
+                          .isBefore(DateUtils.dateOnly(now))
+                      ? 'Choose today or a future date'
+                      : null;
+                })(value),
+              ),
               builder: (field) => Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   OutlinedButton.icon(
                     icon: const Icon(Icons.calendar_today_outlined),
-                    label: Text(
-                      _date == null
-                          ? 'Select Date'
-                          : 'Select Date: ${formatTourDate(_date!)}',
+                    label: UiText(
+                      _date == null ? 'Select Date' : 'Select Date: {0}',
+                      args: _date == null ? const [] : [formatTourDate(_date!)],
                     ),
                     onPressed: _busy
                         ? null
@@ -167,7 +177,7 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
                   if (field.hasError)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
-                      child: Text(
+                      child: UiText(
                         field.errorText!,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.error,
@@ -180,7 +190,10 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
             const SectionHeader(title: 'How much time do you have?'),
             FormField<String>(
               initialValue: _duration,
-              validator: (value) => value == null ? 'Select a duration' : null,
+              validator: (value) => localizeError(
+                context,
+                ((value) => value == null ? 'Select a duration' : null)(value),
+              ),
               builder: (field) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -202,7 +215,7 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
                         .toList(),
                   ),
                   if (field.hasError)
-                    Text(
+                    UiText(
                       field.errorText!,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
@@ -217,8 +230,12 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
             ),
             FormField<int>(
               initialValue: _interests.length,
-              validator: (value) =>
-                  (value ?? 0) == 0 ? 'Select at least one interest' : null,
+              validator: (value) => localizeError(
+                context,
+                ((value) => (value ?? 0) == 0
+                    ? 'Select at least one interest'
+                    : null)(value),
+              ),
               builder: (field) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -228,7 +245,7 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
                     children: ItineraryService.interests
                         .map(
                           (interest) => FilterChip(
-                            label: Text(interest),
+                            label: UiText(interest),
                             selected: _interests.contains(interest),
                             onSelected: _busy
                                 ? null
@@ -247,7 +264,7 @@ class _PlanTourScreenState extends State<PlanTourScreen> {
                         .toList(),
                   ),
                   if (field.hasError)
-                    Text(
+                    UiText(
                       field.errorText!,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,

@@ -18,6 +18,9 @@ String backendMessage(Object error) {
       'user-disabled' => 'This account is disabled. Please contact support.',
       'email-already-in-use' =>
         'An account already uses this email. Please sign in.',
+      'account-exists-with-different-credential' ||
+      'credential-already-in-use' ||
+      'provider-already-linked' => 'Please sign in using your existing account method. Linking another provider requires secure account verification.',
       'weak-password' =>
         'Choose a stronger password with at least 6 characters.',
       'network-request-failed' || 'unavailable' =>

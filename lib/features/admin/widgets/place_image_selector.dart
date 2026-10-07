@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../services/place_image_catalog.dart';
@@ -19,7 +21,7 @@ class _PlaceImageSelectorState extends State<_PlaceImageSelector> {
   late String _selected = widget.current;
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Choose Place Image'),
+    title: const UiText('Choose Place Image'),
     content: SizedBox(
       width: 640,
       height: MediaQuery.sizeOf(context).height * .55,
@@ -96,13 +98,13 @@ class _PlaceImageSelectorState extends State<_PlaceImageSelector> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Cancel'),
+        child: const UiText('Cancel'),
       ),
       FilledButton(
         onPressed: PlaceImageCatalog.forAsset(_selected) == null
             ? null
             : () => Navigator.pop(context, _selected),
-        child: const Text('Use Image'),
+        child: const UiText('Use Image'),
       ),
     ],
   );

@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
@@ -24,13 +26,13 @@ class AuthSuccessPlaceholderScreen extends StatelessWidget {
                   semanticLabel: 'HeritageWalk official logo',
                 ),
                 const SizedBox(height: 24),
-                Text(
+                UiText(
                   'Login Successful',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                const UiText(
                   'Home module will be connected in Part 3',
                   textAlign: TextAlign.center,
                 ),

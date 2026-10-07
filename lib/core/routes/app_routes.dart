@@ -1,3 +1,5 @@
+import '../localization/app_localizations.dart';
+import '../../features/navigation_guide/models/navigation_destination.dart';
 import '../../features/discovery_planning/screens/explore_screen.dart';
 import '../../features/admin/screens/admin_reviews_screen.dart';
 
@@ -138,7 +140,7 @@ abstract final class AppRoutes {
               ? const Scaffold(
                   body: SafeArea(
                     child: Center(
-                      child: Text(
+                      child: UiText(
                         'This place is unavailable. Return to the catalog.',
                       ),
                     ),
@@ -158,8 +160,16 @@ abstract final class AppRoutes {
     createGroup: (_) => const CreateGroupScreen(),
     groupDetails: (context) => GroupDetailsScreen(groupId: _groupId(context)),
     groupTracking: (context) => GroupTrackingScreen(groupId: _groupId(context)),
-    map: (context) => NavigationScreen(place: _optionalPlace(context)),
-    navigation: (context) => NavigationScreen(place: _optionalPlace(context)),
+    map: (context) => NavigationScreen(
+      place: ModalRoute.of(context)?.settings.arguments is RouteDestination
+          ? ModalRoute.of(context)!.settings.arguments as RouteDestination
+          : null,
+    ),
+    navigation: (context) => NavigationScreen(
+      place: ModalRoute.of(context)?.settings.arguments is RouteDestination
+          ? ModalRoute.of(context)!.settings.arguments as RouteDestination
+          : null,
+    ),
     placeDetails: (context) => _placeScreen(
       context,
       'Place Details',

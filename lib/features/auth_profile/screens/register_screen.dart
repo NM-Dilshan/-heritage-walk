@@ -1,3 +1,4 @@
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/firebase/backend_error.dart';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import '../../../shared/widgets/heritage_text_field.dart';
 import '../services/auth_validators.dart';
 import '../services/profile_service.dart';
 import '../widgets/auth_form_layout.dart';
+import '../widgets/social_auth_buttons.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -22,6 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _password = TextEditingController();
   final _confirm = TextEditingController();
   bool _busy = false;
+  bool _emailBusy = false;
   @override
   void dispose() {
     for (final controller in [_name, _email, _password, _confirm]) {
@@ -31,10 +34,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _register() async {
+    if (_busy) return;
     if (!_form.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     final service = ProfileScope.of(context);
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _emailBusy = true;
+    });
     try {
       await service.register(
         fullName: _name.text,
@@ -48,10 +55,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(backendMessage(error))));
+            .showSnackBar(SnackBar(content: UiText(backendMessage(error))));
       }
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _emailBusy = false;
+        });
+      }
     }
   }
 
@@ -74,7 +86,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 label: 'Full Name',
                 controller: _name,
                 prefixIcon: const Icon(Icons.person_outline),
-                validator: AuthValidators.name,
+                validator: (value) =>
+                    localizeError(context, (AuthValidators.name)(value)),
                 enabled: !_busy,
               ),
               const SizedBox(height: 16),
@@ -83,7 +96,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
                 prefixIcon: const Icon(Icons.mail_outline),
-                validator: AuthValidators.email,
+                validator: (value) =>
+                    localizeError(context, (AuthValidators.email)(value)),
                 enabled: !_busy,
               ),
               const SizedBox(height: 16),
@@ -92,7 +106,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _password,
                 isPassword: true,
                 prefixIcon: const Icon(Icons.lock_outline),
-                validator: AuthValidators.password,
+                validator: (value) =>
+                    localizeError(context, (AuthValidators.password)(value)),
                 enabled: !_busy,
               ),
               const SizedBox(height: 16),
@@ -101,38 +116,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _confirm,
                 isPassword: true,
                 prefixIcon: const Icon(Icons.lock_outline),
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Confirm your password'
-                    : value != _password.text
-                    ? 'Passwords must match'
-                    : null,
+                validator: (value) => localizeError(
+                  context,
+                  ((value) => value == null || value.isEmpty
+                      ? 'Confirm your password'
+                      : value != _password.text
+                      ? 'Passwords must match'
+                      : null)(value),
+                ),
                 enabled: !_busy,
               ),
               const SizedBox(height: 24),
               HeritageButton(
                 label: 'Sign Up',
                 onPressed: _register,
-                isLoading: _busy,
+                isLoading: _emailBusy,
+                enabled: !_busy,
               ),
             ],
           ),
         ),
         const AuthDivider(),
-        HeritageButton(
-          label: 'Sign up with Google',
-          variant: HeritageButtonVariant.outlined,
-          enabled: !_busy,
-          onPressed: () => showSocialMessage(context),
+        SocialAuthButtons(
+          busy: _busy,
+          onBusyChanged: (value) => setState(() => _busy = value),
         ),
         const SizedBox(height: 24),
         Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            const Text('Already have an account?'),
+            const UiText('Already have an account?'),
             TextButton(
               onPressed: _busy ? null : _signIn,
-              child: const Text('Sign In'),
+              child: const UiText('Sign In'),
             ),
           ],
         ),

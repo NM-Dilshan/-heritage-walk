@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/routes/app_routes.dart';
@@ -52,7 +54,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             suffixIcon: discovery.query.isEmpty
                 ? null
                 : IconButton(
-                    tooltip: 'Clear search',
+                    tooltip: AppLocalizations.text(context, 'Clear search'),
                     icon: const Icon(Icons.close),
                     onPressed: () {
                       _search.clear();
@@ -81,10 +83,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
           if (discovery.catalogLoading)
             const Center(child: CircularProgressIndicator()),
           if (discovery.catalogError != null) ...[
-            Text(discovery.catalogError!),
+            UiText(discovery.catalogError!),
             TextButton(
               onPressed: CatalogScope.of(context).retryCatalog,
-              child: const Text('Reload places'),
+              child: const UiText('Reload places'),
             ),
           ],
           if (!discovery.catalogLoading &&
@@ -101,8 +103,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
           if (!discovery.catalogLoading && discovery.catalogError == null) ...[
             if (places.isNotEmpty)
-              Text(
-                '${places.length} places',
+              UiText(
+                "{0} places",
+                args: [places.length],
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             PlaceCardGrid(

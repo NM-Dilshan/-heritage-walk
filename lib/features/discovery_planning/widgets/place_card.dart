@@ -1,3 +1,4 @@
+import '../../../core/localization/app_localizations.dart';
 import '../../reviews/widgets/review_widgets.dart';
 
 import 'package:flutter/material.dart';
@@ -45,7 +46,7 @@ class PlaceImage extends StatelessWidget {
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Text('Placeholder image'),
+            child: const UiText('Placeholder image'),
           ),
         ),
     ],
@@ -101,7 +102,7 @@ class PlaceCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
-                    Text(
+                    UiText(
                       place.category,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
@@ -121,8 +122,13 @@ class PlaceCard extends StatelessWidget {
               const SizedBox(width: 4),
               Expanded(child: RatingSummary(placeId: place.id)),
               IconButton(
-                tooltip:
-                    '${isFavorite ? 'Remove' : 'Save'} ${place.name} ${isFavorite ? 'from' : 'to'} favorites',
+                tooltip: uiFormat(
+                  context,
+                  isFavorite
+                      ? 'Remove {0} from favorites'
+                      : 'Save {0} to favorites',
+                  [place.name],
+                ),
                 onPressed: onFavorite,
                 isSelected: isFavorite,
                 icon: const Icon(Icons.favorite_border),

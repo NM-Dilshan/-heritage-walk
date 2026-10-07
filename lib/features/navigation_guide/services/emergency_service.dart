@@ -27,5 +27,5 @@ class EmergencyService {
   static const callingMessage =
       'Calling functionality will be connected during device integration.';
   static const sharingMessage =
-      'Live location sharing will be available after location integration.';
+      'To share location, open a group and start sharing in Group Tracking.';
 }

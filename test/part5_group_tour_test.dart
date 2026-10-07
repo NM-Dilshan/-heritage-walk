@@ -1,3 +1,9 @@
+import 'support/part7_fakes.dart';
+import 'support/part9_fakes.dart';
+
+import 'package:heritage_walk/core/firebase/app_services.dart';
+import 'package:heritage_walk/features/group_support/services/group_location_service.dart';
+import 'package:heritage_walk/features/navigation_guide/widgets/heritage_map.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,7 +17,7 @@ import 'package:heritage_walk/features/group_support/services/group_tour_service
 import 'package:heritage_walk/features/group_support/screens/group_tour_screen.dart';
 import 'package:heritage_walk/features/group_support/screens/group_details_screen.dart';
 import 'package:heritage_walk/features/group_support/screens/group_tracking_screen.dart';
-import 'package:heritage_walk/features/group_support/widgets/group_map_placeholder.dart';
+
 import 'package:heritage_walk/features/navigation_guide/screens/place_details_screen.dart';
 import 'package:heritage_walk/features/navigation_guide/screens/navigation_screen.dart';
 
@@ -27,7 +33,17 @@ Future<void> press(WidgetTester tester, Finder finder) async {
 Future<void> tapText(WidgetTester tester, String text) =>
     press(tester, find.text(text).last);
 Future<void> launch(WidgetTester tester, String route) async {
-  await tester.pumpWidget(HeritageWalkApp(initialRoute: route));
+  final account = FakeAccount();
+  await account.register('Nuwan Perera', 'group@test.com', 'Secure123');
+  final services = AppServices(
+    account: account,
+    location: FakeGps(),
+    routing: FakeRouting(),
+  );
+  await services.profile.ready;
+  await tester.pumpWidget(
+    HeritageWalkApp(services: services, initialRoute: route),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -194,51 +210,46 @@ void main() {
     expect(copied, group.inviteCode);
     expect(find.text('Invite code copied'), findsOneWidget);
   });
-  testWidgets(
-    'Tracking sharing switches state and Refresh moves only sharing demo markers',
-    (tester) async {
-      final group = await seed(tester, AppRoutes.groupTracking);
-      final service = GroupTourScope.of(
-        tester.element(find.byType(GroupTrackingScreen)),
-      );
-      expect(find.text('Demo group tracking'), findsOneWidget);
-      expect(
-        tester
-            .widget<GroupMapPlaceholder>(find.byType(GroupMapPlaceholder))
-            .group
-            .members
-            .single
-            .isSharingLocation,
-        isFalse,
-      );
-      await press(tester, find.byType(SwitchListTile));
-      expect(find.text('Demo location sharing enabled'), findsOneWidget);
-      final before = service.getGroupById(group.id)!.members.single;
-      await press(tester, find.byTooltip('Refresh'));
-      final after = service.getGroupById(group.id)!.members.single;
-      expect(after.relativeX, isNot(before.relativeX));
-      expect(after.lastUpdated!.isBefore(before.lastUpdated!), isFalse);
-      await press(tester, find.byType(SwitchListTile));
-      expect(
-        service.getGroupById(group.id)!.members.single.isSharingLocation,
-        isFalse,
-      );
-      expect(find.text('Location sharing disabled'), findsOneWidget);
-    },
-  );
-  testWidgets(
-    'Tracking links to real Place Details and existing demo Navigation',
-    (tester) async {
-      await seed(tester, AppRoutes.groupTracking);
-      await tapText(tester, 'View Destination');
-      expect(find.byType(PlaceDetailsScreen), findsOneWidget);
-      await tester.pageBack();
-      await tester.pumpAndSettle();
-      await tapText(tester, 'Navigate');
-      expect(find.byType(NavigationScreen), findsOneWidget);
-      expect(find.text('Demo route preview'), findsOneWidget);
-    },
-  );
+  testWidgets('Tracking explicitly starts and stops real-location sharing', (
+    tester,
+  ) async {
+    final group = await seed(tester, AppRoutes.groupTracking);
+    final service = GroupTourScope.of(
+      tester.element(find.byType(GroupTrackingScreen)),
+    );
+    expect(find.text('Sharing OFF'), findsOneWidget);
+    expect(
+      tester.widget<HeritageMap>(find.byType(HeritageMap)).markers,
+      isEmpty,
+    );
+    await tapText(tester, 'Start Sharing Location');
+    expect(find.text('Sharing ON'), findsOneWidget);
+    final repo = service.locations as MemoryGroupLocationRepository;
+    expect(repo.values[group.id]!.keys, [service.currentUserId]);
+    expect(
+      tester
+          .widget<HeritageMap>(find.byType(HeritageMap))
+          .markers
+          .single
+          .position,
+      FakeGps().fix,
+    );
+    await tapText(tester, 'Stop Sharing Location');
+    expect(repo.values[group.id], isEmpty);
+    expect(find.text('Sharing OFF'), findsOneWidget);
+  });
+  testWidgets('Tracking links to real Place Details and route guidance', (
+    tester,
+  ) async {
+    await seed(tester, AppRoutes.groupTracking);
+    await tapText(tester, 'View Destination');
+    expect(find.byType(PlaceDetailsScreen), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tapText(tester, 'Navigate');
+    expect(find.byType(NavigationScreen), findsOneWidget);
+    expect(find.text('Route Guidance'), findsOneWidget);
+  });
   testWidgets(
     'Delete confirmation removes the group and returns to the empty group list',
     (tester) async {

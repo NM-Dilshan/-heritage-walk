@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../models/emergency_contact.dart';
@@ -19,18 +21,18 @@ class EmergencyContactCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(contact.description),
           const SizedBox(height: 12),
-          Text(
+          UiText(
             contact.phoneNumber ??
                 'Number will be provided through verified service data',
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
             icon: const Icon(Icons.phone_outlined),
-            label: Text(onCall == null ? 'Call (not connected)' : 'Call'),
+            label: UiText(onCall == null ? 'Call (not connected)' : 'Call'),
             onPressed: onCall == null
                 ? () => ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text(EmergencyService.callingMessage),
+                      content: UiText(EmergencyService.callingMessage),
                     ),
                   )
                 : () async {
@@ -39,7 +41,7 @@ class EmergencyContactCard extends StatelessWidget {
                     } catch (error) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(backendMessage(error))),
+                          SnackBar(content: UiText(backendMessage(error))),
                         );
                       }
                     }

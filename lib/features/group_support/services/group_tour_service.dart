@@ -1,3 +1,6 @@
+import 'group_location_service.dart';
+import '../../navigation_guide/services/location_service.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../auth_profile/models/user_profile.dart';
@@ -7,10 +10,30 @@ import '../models/group_member.dart';
 import '../models/tour_group.dart';
 
 class GroupTourService extends ChangeNotifier {
-  GroupTourService(this.profileService) {
+  GroupTourService(
+    this.profileService, {
+    GroupLocationRepository? locations,
+    LocationService? location,
+    this.tilesEnabled = true,
+    DateTime Function()? sharingNow,
+    Duration Function()? sharingElapsed,
+  }) : _ownsLocations = locations == null,
+       locations = locations ?? MemoryGroupLocationRepository(),
+       location = location ?? DeviceLocationService() {
+    sharing = GroupLocationSharingController(
+      this,
+      now: sharingNow,
+      elapsed: sharingElapsed,
+    );
+    profileService.beforeSignOut = sharing.stop;
     profileService.addListener(_syncProfile);
   }
   final ProfileService profileService;
+  late final GroupLocationSharingController sharing;
+  final GroupLocationRepository locations;
+  final bool _ownsLocations;
+  final LocationService location;
+  final bool tilesEnabled;
   final Map<String, TourGroup> _groups = {};
   int _groupSequence = 0, _memberSequence = 0;
   String Function()? idFactory;
@@ -199,24 +222,6 @@ class GroupTourService extends ChangeNotifier {
     if (group == null || !isMember(group)) {
       throw StateError('Join the group before viewing tracking.');
     }
-    final now = DateTime.now();
-    _groups[id] = group.copyWith(
-      members: group.members
-          .map(
-            (member) => !member.isSharingLocation
-                ? member
-                : member.copyWith(
-                    relativeX: ((member.relativeX ?? .3) + .04) > .8
-                        ? .2
-                        : (member.relativeX ?? .3) + .04,
-                    relativeY: ((member.relativeY ?? .4) + .03) > .8
-                        ? .2
-                        : (member.relativeY ?? .4) + .03,
-                    lastUpdated: now,
-                  ),
-          )
-          .toList(),
-    );
     notifyListeners();
   }
 
@@ -253,7 +258,14 @@ class GroupTourService extends ChangeNotifier {
 
   @override
   void dispose() {
+    if (profileService.beforeSignOut == sharing.stop) {
+      profileService.beforeSignOut = null;
+    }
+    sharing.dispose();
     profileService.removeListener(_syncProfile);
+    if (_ownsLocations && locations is MemoryGroupLocationRepository) {
+      (locations as MemoryGroupLocationRepository).dispose();
+    }
     super.dispose();
   }
 }

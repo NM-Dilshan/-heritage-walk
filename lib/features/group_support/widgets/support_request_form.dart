@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../models/support_request.dart';
@@ -26,7 +28,7 @@ class _SupportRequestFormState extends State<SupportRequestForm> {
   @override
   Widget build(BuildContext context) => AlertDialog(
     scrollable: true,
-    title: Text(
+    title: UiText(
       widget.request == null ? 'Contact Support' : 'Edit Support Request',
     ),
     content: SizedBox(
@@ -37,32 +39,42 @@ class _SupportRequestFormState extends State<SupportRequestForm> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
+            const UiText(
               'Signed-in requests are saved to your account. No message is sent to a real support team.',
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<SupportCategory>(
               initialValue: _category,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Category'),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.text(context, 'Category'),
+              ),
               items: [
                 for (final category in SupportCategory.values)
                   DropdownMenuItem(
                     value: category,
-                    child: Text(category.label),
+                    child: UiText(category.label),
                   ),
               ],
               onChanged: (value) => _category = value,
-              validator: (value) =>
-                  value == null ? 'Category is required' : null,
+              validator: (value) => localizeError(
+                context,
+                ((value) =>
+                    value == null ? 'Category is required' : null)(value),
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _subject,
               maxLength: 100,
-              decoration: const InputDecoration(labelText: 'Subject'),
-              validator: (value) =>
-                  SupportService.validateText(value, 'Subject', 100),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.text(context, 'Subject'),
+              ),
+              validator: (value) => localizeError(
+                context,
+                ((value) =>
+                    SupportService.validateText(value, 'Subject', 100))(value),
+              ),
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -70,9 +82,14 @@ class _SupportRequestFormState extends State<SupportRequestForm> {
               maxLength: 1000,
               minLines: 3,
               maxLines: 6,
-              decoration: const InputDecoration(labelText: 'Message'),
-              validator: (value) =>
-                  SupportService.validateText(value, 'Message', 1000),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.text(context, 'Message'),
+              ),
+              validator: (value) => localizeError(
+                context,
+                ((value) =>
+                    SupportService.validateText(value, 'Message', 1000))(value),
+              ),
             ),
           ],
         ),
@@ -81,7 +98,7 @@ class _SupportRequestFormState extends State<SupportRequestForm> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Cancel'),
+        child: const UiText('Cancel'),
       ),
       FilledButton(
         onPressed: () {
@@ -102,7 +119,9 @@ class _SupportRequestFormState extends State<SupportRequestForm> {
           }
           Navigator.pop(context, true);
         },
-        child: Text(widget.request == null ? 'Submit Request' : 'Save Changes'),
+        child: UiText(
+          widget.request == null ? 'Submit Request' : 'Save Changes',
+        ),
       ),
     ],
   );

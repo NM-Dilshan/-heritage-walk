@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 class GuideSectionCard extends StatelessWidget {
@@ -13,7 +15,7 @@ class GuideSectionCard extends StatelessWidget {
   Widget build(BuildContext context) => Card(
     clipBehavior: Clip.antiAlias,
     child: ExpansionTile(
-      title: Text(title),
+      title: UiText(title),
       initiallyExpanded: initiallyExpanded,
       childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       children: [Align(alignment: Alignment.centerLeft, child: Text(content))],

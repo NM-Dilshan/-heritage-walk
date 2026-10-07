@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/routes/app_routes.dart';
@@ -61,6 +63,7 @@ class GroupDetailsScreen extends StatelessWidget {
       'Remove this member from the group?',
       member.name,
       'Remove',
+      translateMessage: false,
     );
     if (confirmed && context.mounted) service.removeMember(group.id, member.id);
   }
@@ -76,7 +79,7 @@ class GroupDetailsScreen extends StatelessWidget {
     if (!confirmed || !context.mounted) return;
     service.deleteGroup(group.id);
     ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Group deleted')));
+        .showSnackBar(const SnackBar(content: UiText('Group deleted')));
     Navigator.pushNamedAndRemoveUntil(
       context,
       AppRoutes.groupTours,
@@ -99,9 +102,11 @@ class GroupDetailsScreen extends StatelessWidget {
         children: [
           Text(group.name, style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 8),
-          Text(group.destinationName ?? 'No destination selected'),
+          group.destinationName == null
+              ? const UiText('No destination selected')
+              : Text(group.destinationName!),
           const SizedBox(height: 8),
-          Text('Leader: ${group.leaderName}'),
+          UiText("Leader: {0}", args: [group.leaderName]),
           const SizedBox(height: 20),
           InviteCodeCard(code: group.inviteCode),
           const SizedBox(height: 20),
@@ -120,12 +125,12 @@ class GroupDetailsScreen extends StatelessWidget {
               children: [
                 TextButton.icon(
                   icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Rename Group'),
+                  label: const UiText('Rename Group'),
                   onPressed: () => _rename(context, group),
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.place_outlined),
-                  label: const Text('Change Destination'),
+                  label: const UiText('Change Destination'),
                   onPressed: () => _destination(context, group),
                 ),
               ],
@@ -133,8 +138,7 @@ class GroupDetailsScreen extends StatelessWidget {
           ],
           SectionHeader(
             title: 'Members',
-            subtitle:
-                '${group.members.length} members - online and tracking status are demo values.',
+            subtitle: uiFormat(context, '{0} members', [group.members.length]),
           ),
           for (final member in group.members)
             Padding(
@@ -159,7 +163,7 @@ class GroupDetailsScreen extends StatelessWidget {
                 foregroundColor: Theme.of(context).colorScheme.error,
               ),
               icon: const Icon(Icons.delete_outline),
-              label: const Text('Delete Group'),
+              label: const UiText('Delete Group'),
               onPressed: () => _delete(context, group),
             ),
           ],

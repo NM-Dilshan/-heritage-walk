@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/routes/app_routes.dart';
@@ -23,16 +25,16 @@ class MyItinerariesScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete this itinerary?'),
+        title: const UiText('Delete this itinerary?'),
         content: Text(itinerary.title),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: const UiText('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
+            child: const UiText('Delete'),
           ),
         ],
       ),
@@ -40,7 +42,7 @@ class MyItinerariesScreen extends StatelessWidget {
     if (confirmed == true && context.mounted) {
       service.delete(itinerary.id);
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Itinerary deleted')));
+          .showSnackBar(const SnackBar(content: UiText('Itinerary deleted')));
     }
   }
 
@@ -52,7 +54,7 @@ class MyItinerariesScreen extends StatelessWidget {
       selectedIndex: 3,
       actions: [
         IconButton(
-          tooltip: 'Plan a Tour',
+          tooltip: AppLocalizations.text(context, 'Plan a Tour'),
           onPressed: () => Navigator.pushNamed(context, AppRoutes.planTour),
           icon: const Icon(Icons.add),
         ),
@@ -68,8 +70,9 @@ class MyItinerariesScreen extends StatelessWidget {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  '${items.length} saved journeys',
+                UiText(
+                  "{0} saved journeys",
+                  args: [items.length],
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 20),
@@ -112,7 +115,7 @@ class _RenameItineraryDialogState extends State<_RenameItineraryDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Rename Itinerary'),
+    title: const UiText('Rename Itinerary'),
     content: SingleChildScrollView(
       child: Form(
         key: _form,
@@ -120,16 +123,19 @@ class _RenameItineraryDialogState extends State<_RenameItineraryDialog> {
           label: 'Itinerary title',
           controller: _title,
           maxLength: 80,
-          validator: (value) => value == null || value.trim().isEmpty
-              ? 'Enter an itinerary title'
-              : null,
+          validator: (value) => localizeError(
+            context,
+            ((value) => value == null || value.trim().isEmpty
+                ? 'Enter an itinerary title'
+                : null)(value),
+          ),
         ),
       ),
     ),
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Cancel'),
+        child: const UiText('Cancel'),
       ),
       TextButton(
         onPressed: () {
@@ -137,7 +143,7 @@ class _RenameItineraryDialogState extends State<_RenameItineraryDialog> {
             Navigator.pop(context, _title.text.trim());
           }
         },
-        child: const Text('Save'),
+        child: const UiText('Save'),
       ),
     ],
   );

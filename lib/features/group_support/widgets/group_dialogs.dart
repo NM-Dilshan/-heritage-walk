@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/firebase/backend_error.dart';
@@ -30,7 +32,7 @@ class _GroupTextDialogState extends State<GroupTextDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: Text(widget.title),
+    title: UiText(widget.title),
     content: SingleChildScrollView(
       child: Form(
         key: _form,
@@ -38,14 +40,15 @@ class _GroupTextDialogState extends State<GroupTextDialog> {
           label: widget.label,
           controller: _text,
           maxLength: 60,
-          validator: GroupTourService.validateName,
+          validator: (value) =>
+              localizeError(context, (GroupTourService.validateName)(value)),
         ),
       ),
     ),
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Cancel'),
+        child: const UiText('Cancel'),
       ),
       TextButton(
         onPressed: () {
@@ -53,7 +56,7 @@ class _GroupTextDialogState extends State<GroupTextDialog> {
             Navigator.pop(context, _text.text.trim());
           }
         },
-        child: const Text('Save'),
+        child: const UiText('Save'),
       ),
     ],
   );
@@ -73,7 +76,7 @@ class _GroupDestinationDialogState extends State<GroupDestinationDialog> {
   Widget build(BuildContext context) {
     final places = DiscoveryScope.of(context).discovery.places;
     return AlertDialog(
-      title: const Text('Change Destination'),
+      title: const UiText('Change Destination'),
       content: SingleChildScrollView(
         child: Form(
           key: _form,
@@ -81,7 +84,9 @@ class _GroupDestinationDialogState extends State<GroupDestinationDialog> {
             key: ValueKey(places.map((p) => p.id).join(',')),
             initialValue: places.any((place) => place.id == _id) ? _id : null,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Destination'),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.text(context, 'Destination'),
+            ),
             items: places
                 .map(
                   (place) => DropdownMenuItem(
@@ -94,9 +99,12 @@ class _GroupDestinationDialogState extends State<GroupDestinationDialog> {
                   ),
                 )
                 .toList(),
-            validator: (value) => !places.any((p) => p.id == value)
-                ? 'Select a destination'
-                : null,
+            validator: (value) => localizeError(
+              context,
+              ((value) => !places.any((p) => p.id == value)
+                  ? 'Select a destination'
+                  : null)(value),
+            ),
             onChanged: (value) => _id = value,
           ),
         ),
@@ -104,7 +112,7 @@ class _GroupDestinationDialogState extends State<GroupDestinationDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const UiText('Cancel'),
         ),
         TextButton(
           onPressed: () {
@@ -115,7 +123,7 @@ class _GroupDestinationDialogState extends State<GroupDestinationDialog> {
               );
             }
           },
-          child: const Text('Save'),
+          child: const UiText('Save'),
         ),
       ],
     );
@@ -126,24 +134,25 @@ Future<bool> confirmGroupAction(
   BuildContext context,
   String title,
   String message,
-  String action,
-) async =>
+  String action, {
+  bool translateMessage = true,
+}) async =>
     await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
+        title: UiText(title),
+        content: translateMessage ? UiText(message) : Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: const UiText('Cancel'),
           ),
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(action),
+            child: UiText(action),
           ),
         ],
       ),
@@ -170,7 +179,7 @@ class _JoinGroupDialogState extends State<JoinGroupDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Join with Code'),
+    title: const UiText('Join with Code'),
     content: SingleChildScrollView(
       child: Form(
         key: _form,
@@ -179,9 +188,12 @@ class _JoinGroupDialogState extends State<JoinGroupDialog> {
           hint: 'HW-1234',
           controller: _code,
           errorText: _error,
-          validator: (value) => value == null || value.trim().isEmpty
-              ? 'Enter an invite code'
-              : null,
+          validator: (value) => localizeError(
+            context,
+            ((value) => value == null || value.trim().isEmpty
+                ? 'Enter an invite code'
+                : null)(value),
+          ),
           onChanged: (_) => setState(() => _error = null),
         ),
       ),
@@ -189,7 +201,7 @@ class _JoinGroupDialogState extends State<JoinGroupDialog> {
     actions: [
       TextButton(
         onPressed: _busy ? null : () => Navigator.pop(context),
-        child: const Text('Cancel'),
+        child: const UiText('Cancel'),
       ),
       TextButton(
         onPressed: _busy
@@ -213,7 +225,7 @@ class _JoinGroupDialogState extends State<JoinGroupDialog> {
                   if (mounted) setState(() => _busy = false);
                 }
               },
-        child: const Text('Join'),
+        child: const UiText('Join'),
       ),
     ],
   );

@@ -1,3 +1,4 @@
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/firebase/backend_error.dart';
 
 import 'package:flutter/material.dart';
@@ -61,13 +62,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await service.update(updated);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
+        const SnackBar(content: UiText('Profile updated successfully')),
       );
       Navigator.of(context).pop();
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(backendMessage(error))));
+            .showSnackBar(SnackBar(content: UiText(backendMessage(error))));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -85,17 +86,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from Gallery'),
+              title: const UiText('Choose from Gallery'),
               onTap: () => Navigator.pop(context, 'gallery'),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Take Photo'),
+              title: const UiText('Take Photo'),
               onTap: () => Navigator.pop(context, 'camera'),
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline),
-              title: const Text('Remove Photo'),
+              title: const UiText('Remove Photo'),
               onTap: () => Navigator.pop(context, 'remove'),
             ),
           ],
@@ -108,7 +109,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
+          content: UiText(
             'Photo selection will be connected during device integration.',
           ),
         ),
@@ -141,28 +142,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Center(
                       child: TextButton(
                         onPressed: _busy ? null : _changePhoto,
-                        child: const Text('Change Photo'),
+                        child: const UiText('Change Photo'),
                       ),
                     ),
                     const SizedBox(height: 20),
                     HeritageTextField(
                       label: 'Full Name',
                       controller: _name,
-                      validator: AuthValidators.name,
+                      validator: (value) =>
+                          localizeError(context, (AuthValidators.name)(value)),
                       enabled: !_busy,
                     ),
                     const SizedBox(height: 16),
                     HeritageTextField(
                       label: 'Email',
                       controller: _email,
-                      validator: AuthValidators.email,
+                      validator: (value) =>
+                          localizeError(context, (AuthValidators.email)(value)),
                       keyboardType: TextInputType.emailAddress,
                       enabled: !_busy,
                     ),
                     if (ProfileScope.of(context).isCloud)
                       const Padding(
                         padding: EdgeInsets.only(top: 8),
-                        child: Text(
+                        child: UiText(
                           'This is your contact email. Your sign-in email is unchanged.',
                         ),
                       ),
@@ -170,7 +173,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     HeritageTextField(
                       label: 'Phone',
                       controller: _phone,
-                      validator: AuthValidators.phone,
+                      validator: (value) =>
+                          localizeError(context, (AuthValidators.phone)(value)),
                       keyboardType: TextInputType.phone,
                       enabled: !_busy,
                     ),
@@ -178,7 +182,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     HeritageTextField(
                       label: 'Bio',
                       controller: _bio,
-                      validator: AuthValidators.bio,
+                      validator: (value) =>
+                          localizeError(context, (AuthValidators.bio)(value)),
                       maxLength: 150,
                       maxLines: 3,
                       keyboardType: TextInputType.multiline,

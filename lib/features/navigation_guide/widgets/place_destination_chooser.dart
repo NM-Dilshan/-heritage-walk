@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../discovery_planning/services/discovery_scope.dart';
@@ -17,7 +19,7 @@ class PlaceDestinationChooser extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
+        UiText(
           'Choose a destination',
           style: Theme.of(context).textTheme.headlineSmall,
         ),

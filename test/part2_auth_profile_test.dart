@@ -173,20 +173,18 @@ void main() {
   });
 
   testWidgets(
-    'Reset validates email and social sign-in displays deferred message',
+    'Reset validates email and isolated preview cannot start live social sign-in',
     (tester) async {
       await launch(tester, AppRoutes.login);
       await tap(tester, 'Continue with Google');
       await tester.pumpAndSettle();
       expect(
-        find.text(
-          'Social sign-in will be connected during backend integration.',
-        ),
+        find.text('Social sign-in is unavailable in this preview.'),
         findsOneWidget,
       );
       await tap(tester, 'Forgot Password?');
       await tester.pumpAndSettle();
-      await tap(tester, 'Send instructions');
+      await tap(tester, 'Send Reset Link');
       await tester.pumpAndSettle();
       expect(find.text('Email is required'), findsOneWidget);
       await tester.enterText(
@@ -196,10 +194,13 @@ void main() {
         ),
         'nuwan@example.com',
       );
-      await tap(tester, 'Send instructions');
+      await tap(tester, 'Send Reset Link');
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pumpAndSettle();
-      expect(find.text('Password reset instructions sent.'), findsOneWidget);
+      expect(
+        find.text('Preview only: no reset email was sent.'),
+        findsOneWidget,
+      );
     },
   );
 

@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/routes/app_routes.dart';
@@ -18,7 +20,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   String _query = '', _category = 'All';
   void _feedback(String text) {
     ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: UiText(text)));
   }
 
   Future<void> _form(SupportService service, [SupportRequest? request]) async {
@@ -39,21 +41,21 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Support Request?'),
-        content: const Text(
+        title: const UiText('Delete Support Request?'),
+        content: const UiText(
           'This request will be permanently removed from your account.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const UiText('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: const UiText('Delete'),
           ),
         ],
       ),
@@ -71,7 +73,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         .where(
           (topic) =>
               (_category == 'All' || topic.category == _category) &&
-              '${topic.question} ${topic.answer} ${topic.category}'
+              '${AppLocalizations.text(context, topic.question)} ${AppLocalizations.text(context, topic.answer)} ${AppLocalizations.text(context, topic.category)}'
                   .toLowerCase()
                   .contains(_query.trim().toLowerCase()),
         )
@@ -82,16 +84,16 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
+          UiText(
             'How can we help you?',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 20),
           TextField(
-            decoration: const InputDecoration(
-              hintText: 'Search for help...',
+            decoration: InputDecoration(
+              hintText: AppLocalizations.text(context, 'Search for help...'),
               prefixIcon: Icon(Icons.search),
-              labelText: 'Search help',
+              labelText: AppLocalizations.text(context, 'Search help'),
             ),
             onChanged: (value) => setState(() => _query = value),
           ),
@@ -109,14 +111,14 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 'Safety',
               ])
                 FilterChip(
-                  label: Text(category),
+                  label: UiText(category),
                   selected: _category == category,
                   onSelected: (_) => setState(() => _category = category),
                 ),
             ],
           ),
           const SizedBox(height: 24),
-          Text(
+          UiText(
             'Frequently Asked Questions',
             style: Theme.of(context).textTheme.titleLarge,
           ),
@@ -124,7 +126,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           if (topics.isEmpty)
             const Padding(
               padding: EdgeInsets.all(20),
-              child: Text('No help topics found'),
+              child: UiText('No help topics found'),
             ),
           for (final topic in topics) ...[
             FaqTile(key: ValueKey(topic.question), topic: topic),
@@ -134,14 +136,14 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           FilledButton.icon(
             onPressed: () => _form(service),
             icon: const Icon(Icons.support_agent),
-            label: const Text('Contact Support'),
+            label: const UiText('Contact Support'),
           ),
           const SizedBox(height: 12),
-          const Text(
+          const UiText(
             'Academic demo requests. Requests are not delivered or monitored by a real support team.',
           ),
           const SizedBox(height: 24),
-          Text(
+          UiText(
             'My Support Requests',
             style: Theme.of(context).textTheme.titleLarge,
           ),
@@ -150,7 +152,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             const Card(
               child: Padding(
                 padding: EdgeInsets.all(24),
-                child: Text(
+                child: UiText(
                   'No support requests yet. Use Contact Support to create one.',
                 ),
               ),
@@ -182,7 +184,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
+                  UiText(
                     'Need emergency help?',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
@@ -191,7 +193,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     onPressed: () =>
                         Navigator.pushNamed(context, AppRoutes.emergency),
                     icon: const Icon(Icons.health_and_safety_outlined),
-                    label: const Text('Open Emergency Support'),
+                    label: const UiText('Open Emergency Support'),
                   ),
                 ],
               ),

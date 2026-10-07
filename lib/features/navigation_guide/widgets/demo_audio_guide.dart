@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -59,12 +61,12 @@ class _DemoAudioGuideState extends State<DemoAudioGuide>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
+          UiText(
             'Demo audio guide',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
-          const Text('UI preview only. No audio recording is playing.'),
+          const UiText('UI preview only. No audio recording is playing.'),
           const SizedBox(height: 16),
           LinearProgressIndicator(
             value: _seconds / 60,
@@ -81,7 +83,7 @@ class _DemoAudioGuideState extends State<DemoAudioGuide>
             child: TextButton.icon(
               onPressed: _toggle,
               icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
-              label: Text(_playing ? 'Pause demo' : 'Play demo'),
+              label: UiText(_playing ? 'Pause demo' : 'Play demo'),
             ),
           ),
         ],

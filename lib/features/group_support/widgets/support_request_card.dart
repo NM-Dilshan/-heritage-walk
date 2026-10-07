@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../discovery_planning/widgets/discovery_layout.dart';
@@ -22,8 +24,12 @@ class SupportRequestCard extends StatelessWidget {
         children: [
           Text(request.subject, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          Text(
-            '${request.category.label} • Created ${formatTourDate(request.createdAt)}',
+          UiText(
+            "{0} • Created {1}",
+            args: [
+              AppLocalizations.text(context, request.category.label),
+              formatTourDate(request.createdAt),
+            ],
           ),
           const SizedBox(height: 8),
           Align(
@@ -35,7 +41,7 @@ class SupportRequestCard extends StatelessWidget {
                     : Icons.check_circle_outline,
                 size: 18,
               ),
-              label: Text(
+              label: UiText(
                 request.status == SupportStatus.open ? 'Open' : 'Resolved',
               ),
             ),
@@ -50,12 +56,12 @@ class SupportRequestCard extends StatelessWidget {
               TextButton.icon(
                 onPressed: onEdit,
                 icon: const Icon(Icons.edit_outlined),
-                label: const Text('Edit'),
+                label: const UiText('Edit'),
               ),
               TextButton.icon(
                 onPressed: onStatus,
                 icon: const Icon(Icons.check_circle_outline),
-                label: Text(
+                label: UiText(
                   request.status == SupportStatus.open
                       ? 'Mark Resolved'
                       : 'Reopen',
@@ -67,7 +73,7 @@ class SupportRequestCard extends StatelessWidget {
                 style: TextButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.error,
                 ),
-                label: const Text('Delete'),
+                label: const UiText('Delete'),
               ),
             ],
           ),

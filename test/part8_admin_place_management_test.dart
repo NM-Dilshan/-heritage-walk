@@ -632,7 +632,7 @@ void main() {
       final services = await app(places: repo);
       await showApp(tester, services, AppRoutes.adminPlaces);
       await press(tester, 'Add Place');
-      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.tap(find.byKey(const ValueKey('place-category-null')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Forts').last);
       await tester.pumpAndSettle();

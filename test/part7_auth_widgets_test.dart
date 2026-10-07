@@ -185,16 +185,25 @@ void main() {
       data.failWrites = true;
       await tester.tap(find.text('Tamil'));
       await tester.pump();
-      expect(find.text('Saving changes…'), findsOneWidget);
+      expect(find.text('மாற்றங்கள் சேமிக்கப்படுகின்றன…'), findsOneWidget);
       data.gate!.complete();
       await tester.pumpAndSettle();
+      expect(
+        services.language.selectedLanguageCode,
+        'en',
+      ); // Failed preference save rolls back.
       expect(
         find.textContaining('Cloud save was not confirmed'),
         findsOneWidget,
       );
       data.failWrites = false;
       data.gate = null;
-      await tap(tester, 'Reload Saved Data');
+      await tap(
+        tester,
+        find.text('சேமித்த தரவை மீளேற்றுங்கள்').evaluate().isNotEmpty
+            ? 'சேமித்த தரவை மீளேற்றுங்கள்'
+            : 'Reload Saved Data',
+      );
       expect(services.sync!.error, isNull);
     },
   );

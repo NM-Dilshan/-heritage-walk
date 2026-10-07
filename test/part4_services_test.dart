@@ -1,27 +1,36 @@
+import 'support/part9_fakes.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heritage_walk/features/discovery_planning/services/discovery_service.dart';
 import 'package:heritage_walk/features/navigation_guide/models/facility.dart';
+
+import 'support/part91_fakes.dart';
+
 import 'package:heritage_walk/features/navigation_guide/models/guide_note.dart';
 import 'package:heritage_walk/features/navigation_guide/models/route_info.dart';
 import 'package:heritage_walk/features/navigation_guide/services/navigation_service.dart';
 import 'package:heritage_walk/features/navigation_guide/services/guide_notes_service.dart';
-import 'package:heritage_walk/features/navigation_guide/services/facility_service.dart';
 import 'package:heritage_walk/features/navigation_guide/services/emergency_service.dart';
 
 void main() {
-  test('Navigation is deterministic, requires a destination and resets active state', () {
-    final service = NavigationService();
+  test('Navigation requires a GPS route and resets active state', () async {
+    final gps = FakeGps(), routing = FakeRouting();
+    final service = NavigationService(location: gps, routing: routing);
+    addTearDown(gps.dispose);
     final discovery = DiscoveryService();
     addTearDown(service.dispose);
     addTearDown(discovery.dispose);
     expect(service.route, isNull);
     expect(service.start(), isFalse);
-    service.selectDestination(discovery.places.first);
-    expect(service.route!.minutes, 15);
-    expect(service.route!.distanceKm, 4.8);
+    service.selectDestination(coordinatePlace(discovery.places.first));
+    expect(service.route, isNull);
+    await service.locate();
+    expect(service.route!.minutes, 10);
+    expect(service.route!.distanceKm, 3.8);
     service.start();
     expect(service.isActive, isTrue);
     service.selectMode(TravelMode.walking);
+    await flushGps();
     expect(service.route!.minutes, 58);
     expect(service.isActive, isFalse);
     service.start();
@@ -68,28 +77,43 @@ void main() {
       expect(service.forPlace('sigiriya').single.text, 'valid');
     },
   );
-  test('Facility search combines types, query and filters', () {
-    final service = FacilityService();
-    expect(service.getFacilities().length, 8);
-    expect(service.searchFacilities('', filter: 'Food').length, 2);
-    expect(
-      service.searchFacilities('CAFE', filter: 'Food').single.type,
-      FacilityType.cafe,
-    );
-    expect(service.searchFacilities('cafe', filter: 'Parking'), isEmpty);
-    expect(
-      service.getFacilitiesByType(FacilityType.hospital).single.name,
-      'Demo Medical Facility',
-    );
-    expect(
-      service.searchFacilities('', filter: 'Police').single.type,
-      FacilityType.police,
-    );
-    expect(
-      service.searchFacilities('', filter: 'Medical').single.type,
-      FacilityType.hospital,
-    );
-  });
+  test(
+    'Facility search combines real OSM categories and GPS proximity',
+    () async {
+      final service = FakeNearbyFacilityService();
+      final food = await service.search(
+        origin: facilityOrigin,
+        category: FacilityCategory.food,
+      );
+      expect(food, hasLength(3));
+      expect(
+        food.where((f) => f.name!.toLowerCase().contains('cafe')).single.osmId,
+        'node/8',
+      );
+      expect(
+        (await service.search(
+          origin: facilityOrigin,
+          category: FacilityCategory.parking,
+        )).where((f) => f.name!.contains('Cafe')),
+        isEmpty,
+      );
+      expect(
+        (await service.search(
+          origin: facilityOrigin,
+          category: FacilityCategory.hospital,
+        )),
+        hasLength(3),
+      );
+      expect(
+        (await service.search(
+          origin: facilityOrigin,
+          category: FacilityCategory.police,
+        )).single.category,
+        FacilityCategory.police,
+      );
+      expect(food.every((f) => f.distanceMeters > 0), isTrue);
+    },
+  );
   test('Emergency records contain no unverified phone numbers', () {
     final contacts = EmergencyService().getContacts();
     expect(contacts.length, 4);

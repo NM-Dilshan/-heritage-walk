@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 class MapPlaceholder extends StatelessWidget {
@@ -11,7 +13,7 @@ class MapPlaceholder extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
-          child: Text(
+          child: UiText(
             'Demo route preview',
             style: Theme.of(context).textTheme.titleMedium,
           ),
@@ -43,24 +45,27 @@ class MapPlaceholder extends StatelessWidget {
                 child: Column(
                   children: [
                     IconButton.filledTonal(
-                      tooltip: 'Demo compass',
+                      tooltip: AppLocalizations.text(context, 'Demo compass'),
                       icon: const Icon(Icons.explore_outlined),
                       onPressed: () => ScaffoldMessenger.of(context)
                           .showSnackBar(
                             const SnackBar(
-                              content: Text(
+                              content: UiText(
                                 'Illustrative compass; live orientation is not connected.',
                               ),
                             ),
                           ),
                     ),
                     IconButton.filledTonal(
-                      tooltip: 'Center demo preview',
+                      tooltip: AppLocalizations.text(
+                        context,
+                        'Center demo preview',
+                      ),
                       icon: const Icon(Icons.center_focus_strong),
                       onPressed: () => ScaffoldMessenger.of(context)
                           .showSnackBar(
                             const SnackBar(
-                              content: Text(
+                              content: UiText(
                                 'Demo preview centered; no GPS location is used.',
                               ),
                             ),
@@ -81,14 +86,14 @@ class MapPlaceholder extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 8,
                 children: [
-                  Text('Current Location: demo marker'),
-                  Text('Destination: demo marker'),
+                  UiText('Current Location: demo marker'),
+                  UiText('Destination: demo marker'),
                 ],
               ),
               const SizedBox(height: 8),
               Text(destination, style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: 8),
-              const Text(
+              const UiText(
                 'Illustration only. No live GPS, traffic or street routing.',
               ),
             ],

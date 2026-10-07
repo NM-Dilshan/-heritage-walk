@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+
+import 'predefined_places.dart';
 
 import '../../../core/firebase/backend_error.dart';
 import '../../../core/firebase/cloud_values.dart';
@@ -13,7 +16,36 @@ abstract interface class PlaceRepository {
   Future<bool> create(HeritagePlace place, String uid);
   Future<void> update(HeritagePlace place, String uid);
   Future<void> delete(String id);
+  Future<PlaceImportResult> importPredefined(String uid);
 }
+
+class PlaceImportResult {
+  const PlaceImportResult({
+    this.created = 0,
+    this.updated = 0,
+    this.skipped = 0,
+  });
+  final int created, updated, skipped;
+}
+
+// Only catalog metadata is imported. Existing aggregate/audit fields survive.
+Map<String, Object?> _importMetadata(HeritagePlace place, String id) =>
+    place.toMap()
+      ..['id'] = id
+      ..remove('rating')
+      ..remove('reviewCount')
+      ..remove('createdAt')
+      ..remove('createdBy')
+      ..remove('updatedAt')
+      ..remove('updatedBy');
+
+bool _sameMetadata(Map<String, dynamic> old, Map<String, Object?> values) =>
+    values.entries.every(
+      (entry) => entry.value is List
+          ? old[entry.key] is List &&
+                listEquals(old[entry.key] as List, entry.value as List)
+          : old[entry.key] == entry.value,
+    );
 
 abstract interface class RoleRepository {
   Stream<String> watch(String uid);
@@ -96,6 +128,63 @@ class FirestorePlaceRepository implements PlaceRepository {
         });
       });
   @override
+  Future<PlaceImportResult> importPredefined(String uid) => db.runTransaction((
+    tx,
+  ) async {
+    // Read every candidate before any write. Alias reads preserve catalogs that
+    // already used the supplied long IDs instead of the original seed IDs.
+    final snapshots = <String, DocumentSnapshot<Map<String, dynamic>>>{};
+    for (final place in PredefinedPlaces.places) {
+      for (final id in [place.id, ?PredefinedPlaces.aliases[place.id]]) {
+        snapshots[id] = await tx.get(_places.doc(id));
+      }
+    }
+    var created = 0, updated = 0, skipped = 0;
+    for (final place in PredefinedPlaces.places) {
+      final alias = PredefinedPlaces.aliases[place.id];
+      final id =
+          !snapshots[place.id]!.exists &&
+              alias != null &&
+              snapshots[alias]!.exists
+          ? alias
+          : place.id;
+      final old = snapshots[id]!.data();
+      final values = _importMetadata(place, id);
+      if (old != null && _sameMetadata(old, values)) {
+        skipped++;
+        continue;
+      }
+      final write = <String, dynamic>{
+        ...values,
+        if (old == null) ...{
+          'rating': 0,
+          'reviewCount': 0,
+          'createdAt': FieldValue.serverTimestamp(),
+          'createdBy': uid,
+        },
+        'updatedAt': FieldValue.serverTimestamp(),
+        'updatedBy': uid,
+      };
+      if (old == null) {
+        tx.set(_places.doc(id), write);
+      } else {
+        // Update only predefined metadata; never replace an existing document.
+        tx.update(_places.doc(id), write);
+      }
+      if (old == null) {
+        created++;
+      } else {
+        updated++;
+      }
+    }
+    return PlaceImportResult(
+      created: created,
+      updated: updated,
+      skipped: skipped,
+    );
+  });
+
+  @override
   Future<void> delete(String id) => db.runTransaction((tx) async {
     final ref = _places.doc(id);
     if (!(await tx.get(ref)).exists) {
@@ -174,6 +263,39 @@ class InMemoryPlaceRepository implements PlaceRepository {
       throw const BackendFailure('This place no longer exists.');
     }
     _changes.add(null);
+  }
+
+  @override
+  Future<PlaceImportResult> importPredefined(String uid) async {
+    var created = 0, updated = 0, skipped = 0;
+    for (final place in PredefinedPlaces.places) {
+      final alias = PredefinedPlaces.aliases[place.id];
+      final id =
+          !_items.containsKey(place.id) &&
+              alias != null &&
+              _items.containsKey(alias)
+          ? alias
+          : place.id;
+      final old = _items[id];
+      final values = _importMetadata(place, id);
+      if (old != null && _sameMetadata(old.toMap(), values)) {
+        skipped++;
+      } else {
+        final next = HeritagePlace.fromMap({...?old?.toMap(), ...values});
+        if (old == null) {
+          await create(next, uid);
+          created++;
+        } else {
+          await update(next, uid);
+          updated++;
+        }
+      }
+    }
+    return PlaceImportResult(
+      created: created,
+      updated: updated,
+      skipped: skipped,
+    );
   }
 
   Future<void> dispose() => _changes.close();

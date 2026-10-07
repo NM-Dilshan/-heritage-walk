@@ -1,3 +1,8 @@
+import '../../features/navigation_guide/services/location_service.dart';
+import '../../features/navigation_guide/services/routing_service.dart';
+import '../../features/navigation_guide/services/facility_service.dart';
+import '../../features/group_support/services/group_location_service.dart';
+
 import 'dart:math';
 
 import '../../features/reviews/services/review_repository.dart';
@@ -36,7 +41,21 @@ class AppServices {
     EmergencyRepository? emergencyContacts,
     PhoneLauncher? phone,
     ReviewRepository? reviews,
+    LocationService? location,
+    RoutingService? routing,
+    NearbyFacilityService? facilities,
+    GroupLocationRepository? groupLocations,
+    bool mapTilesEnabled = false,
+    DateTime Function()? groupSharingNow,
+    Duration Function()? groupSharingElapsed,
   }) {
+    location ??= UnavailableLocationService();
+    navigation = NavigationGuideState(
+      location: location,
+      routing: routing,
+      facilities: facilities ?? UnavailableNearbyFacilityService(),
+      tilesEnabled: mapTilesEnabled,
+    );
     profile = ProfileService(repository: account);
     catalog = CatalogController(
       profile,
@@ -54,7 +73,14 @@ class AppServices {
       reviews ?? InMemoryReviewRepository(),
       ownsRepository: reviews == null,
     );
-    groups = GroupTourService(profile);
+    groups = GroupTourService(
+      profile,
+      locations: groupLocations,
+      location: location,
+      tilesEnabled: mapTilesEnabled,
+      sharingNow: groupSharingNow,
+      sharingElapsed: groupSharingElapsed,
+    );
     if (data != null) {
       sync = SyncController(data, [
         CollectionBinding(
@@ -118,30 +144,7 @@ class AppServices {
           },
         ),
         CollectionBinding('groups', groups, _groupDocuments, (documents) {
-          final previous = {
-            for (final group in groups.getGroups()) group.id: group,
-          };
-          groups.restore(
-            documents.values.map((data) {
-              final group = TourGroup.fromMap(data);
-              return group.copyWith(
-                members: group.members.map((member) {
-                  final old = previous[group.id]?.members
-                      .where((item) => item.id == member.id)
-                      .firstOrNull;
-                  return member.copyWith(
-                    relativeX:
-                        old?.relativeX ??
-                        .2 + (member.id.hashCode.abs() % 5) * .12,
-                    relativeY:
-                        old?.relativeY ??
-                        .3 + (member.id.hashCode.abs() % 3) * .14,
-                    lastUpdated: old?.lastUpdated ?? DateTime.now(),
-                  );
-                }).toList(),
-              );
-            }),
-          );
+          groups.restore(documents.values.map(TourGroup.fromMap));
         }),
       ], clearLocal);
       profile.onSession = (uid) async {
@@ -179,6 +182,12 @@ class AppServices {
     emergencyContacts: FirestoreEmergencyRepository(FirebaseFirestore.instance),
     phone: DevicePhoneLauncher(),
     reviews: FirestoreReviewRepository(FirebaseFirestore.instance),
+    groupLocations: FirestoreGroupLocationRepository(
+      FirebaseFirestore.instance,
+    ),
+    location: DeviceLocationService(),
+    facilities: OverpassNearbyFacilityService(),
+    mapTilesEnabled: true,
   );
   late final ProfileService profile;
   late final CatalogController catalog;
@@ -186,7 +195,7 @@ class AppServices {
   late final ReviewController reviews;
   late final GroupTourService groups;
   final discovery = DiscoveryState();
-  final navigation = NavigationGuideState();
+  late final NavigationGuideState navigation;
   final language = LanguageService();
   final support = SupportService();
   SyncController? sync;

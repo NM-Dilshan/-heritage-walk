@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 class FaqTopic {
@@ -26,17 +28,17 @@ class FaqTopic {
     ),
     FaqTopic(
       'How does navigation work?',
-      'Navigation currently shows demo route previews and estimates. Live maps and GPS are not integrated.',
+      'Select a place and tap Navigate. Allow GPS to preview a real route. Start Route Guidance for live location; voice guidance is not provided.',
       'Navigation',
     ),
     FaqTopic(
       'How do I change my language?',
-      'Open Profile → Language and select English, Sinhala or Tamil. This changes your session preference and preview, not the entire app.',
+      'Open Profile → Language and choose English, Sinhala or Tamil. The app updates and saves your signed-in preference.',
       'Account',
     ),
     FaqTopic(
       'How do I edit my profile?',
-      'Open Profile → Edit Profile. Changes update your current local profile. User-specific demo data clears on logout.',
+      'Open Profile → Edit Profile. Save your changes to your signed-in account.',
       'Account',
     ),
     FaqTopic(
@@ -58,11 +60,11 @@ class FaqTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: ExpansionTile(
-      title: Text(topic.question),
-      subtitle: Text(topic.category),
+      title: UiText(topic.question),
+      subtitle: UiText(topic.category),
       childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [Text(topic.answer)],
+      children: [UiText(topic.answer)],
     ),
   );
 }

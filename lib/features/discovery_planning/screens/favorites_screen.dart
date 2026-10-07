@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../shared/widgets/main_bottom_navigation.dart';
@@ -26,8 +28,9 @@ class FavoritesScreen extends StatelessWidget {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  '${places.length} places to return to',
+                UiText(
+                  "{0} places to return to",
+                  args: [places.length],
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 20),
@@ -39,7 +42,7 @@ class FavoritesScreen extends StatelessWidget {
                     ScaffoldMessenger.of(context).hideCurrentSnackBar();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('${place.name} removed'),
+                        content: UiText("{0} removed", args: [place.name]),
                         action: SnackBarAction(
                           label: 'Undo',
                           onPressed: () => service.addFavorite(place),

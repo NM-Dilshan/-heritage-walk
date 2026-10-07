@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
@@ -33,14 +35,14 @@ class AuthFormLayout extends StatelessWidget {
                   semanticLabel: 'HeritageWalk official logo',
                 ),
                 const SizedBox(height: 24),
-                Text(
+                UiText(
                   title,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                UiText(
                   subtitle,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -69,7 +71,7 @@ class AuthDivider extends StatelessWidget {
         Expanded(child: Divider()),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text('or'),
+          child: UiText('or'),
         ),
         Expanded(child: Divider()),
       ],
@@ -77,17 +79,9 @@ class AuthDivider extends StatelessWidget {
   );
 }
 
-void showSocialMessage(BuildContext context) => ScaffoldMessenger.of(context)
-    .showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Social sign-in will be connected during backend integration.',
-        ),
-      ),
-    );
 void showFutureFeature(BuildContext context) => ScaffoldMessenger.of(context)
     .showSnackBar(
       const SnackBar(
-        content: Text('Feature will be connected in a later module.'),
+        content: UiText('Feature will be connected in a later module.'),
       ),
     );

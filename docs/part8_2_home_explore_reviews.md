@@ -106,7 +106,7 @@ firebase emulators:exec --project demo-heritagewalk --only auth,firestore "power
 
 The development smoke entry point uses a named Firebase app and explicit demo project/emulator endpoints. It is not the shipped main.dart entry point. Rebuild the normal debug APK afterwards.
 
-Requested checks: flutter pub get, dart format lib test, flutter analyze, flutter test, flutter build apk --debug. Final APK should be build/app/outputs/flutter-apk/app-debug.apk built from normal lib/main.dart.
+Requested checks completed: flutter pub get, dart format lib test, flutter analyze, flutter test, flutter build apk --debug. The final normal-main debug APK built successfully at build/app/outputs/flutter-apk/app-debug.apk. Kernel inspection confirmed ExploreScreen, ReviewController and Review Moderation are included, and all 17 packaged JPGs remain bundled. It installed successfully on emulator-5554, restored the existing session into the new Home dashboard, and the Explore All Places shortcut opened the distinct Explore screen with its catalog/search/category UI. The running app reported no startup errors. Production review-rule deployment and manual acceptance remain separate from these local/launch checks.
 
 ## Manual acceptance and limitations
 
@@ -118,4 +118,4 @@ Requested checks: flutter pub get, dart format lib test, flutter analyze, flutte
 - Verify all packaged/placeholder images and an existing HTTPS reference, long comments/public names, larger text, keyboard and a physical Android phone. The unit/widget tests do not replace production deployment/device acceptance.
 - Emergency Support/dialer, Digital Guide, demo navigation, groups, language preference and support/About remain; no Part 9 behavior is introduced.
 
-Dependency resolution may report four newer incompatible versions. Current Gradle/Java native-access and Firebase Auth/Core Built-in Kotlin compatibility warnings remain tooling concerns. Emulator startup can be slow on this machine; leftover demo port processes must be identified before stopping them. No production data should be touched to resolve local test issues.
+Dependency resolution reports four newer incompatible versions. Successful builds emitted Gradle/Java native-access and Firebase Auth/Core Built-in Kotlin compatibility warnings. The Android smoke run also logged Flutter accessibility/reflection and profiling-flag compatibility messages. A transient ADB connection interruption and an unrelated Messages app ANR dialog initially interrupted/obscured startup verification; retrying and dismissing the dialog allowed the final normal Home and Explore checks to succeed. No HeritageWalk startup error was observed. Emulator startup can be slow on this machine; leftover demo port processes must be identified before stopping them. No production data was written to resolve local test issues.

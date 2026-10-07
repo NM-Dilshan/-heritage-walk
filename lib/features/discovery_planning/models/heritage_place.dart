@@ -1,6 +1,7 @@
 import '../../../core/firebase/cloud_values.dart';
+import '../../navigation_guide/models/navigation_destination.dart';
 
-class HeritagePlace {
+class HeritagePlace implements RouteDestination {
   const HeritagePlace({
     required this.id,
     required this.name,
@@ -27,9 +28,11 @@ class HeritagePlace {
     this.updatedBy = '',
     this.isActive = true,
   });
-  final String id,
-      name,
-      city,
+  @override
+  final String id;
+  @override
+  final String name;
+  final String city,
       district,
       category,
       shortDescription,
@@ -38,6 +41,7 @@ class HeritagePlace {
   final double rating;
   final int reviewCount;
   final bool isFeatured;
+  @override
   final double? latitude, longitude;
   final String? openingHours, entranceFee;
   final String address,
@@ -48,6 +52,10 @@ class HeritagePlace {
   final List<String> highlights;
   final DateTime? createdAt, updatedAt;
   final bool isActive;
+  @override
+  String get subtitle => '$city, $district';
+  @override
+  bool get hasName => true;
   HeritagePlace copyWith({String? name, bool? isActive}) =>
       HeritagePlace.fromMap({...toMap(), 'name': ?name, 'isActive': ?isActive});
   Map<String, Object?> toMap() => {

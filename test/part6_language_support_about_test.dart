@@ -75,10 +75,20 @@ void main() {
     tester,
   ) async {
     await launch(tester, AppRoutes.language);
-    await tapText(tester, 'Sinhala');
+    await press(
+      tester,
+      find.byWidgetPredicate(
+        (w) => w is LanguageOptionCard && w.language.code == 'si',
+      ),
+    );
     expect(find.text('ශ්‍රී ලංකාව ගවේෂණය කරන්න'), findsOneWidget);
-    expect(find.text('Language preference updated'), findsOneWidget);
-    await tapText(tester, 'Tamil');
+    expect(find.text('භාෂා තේරීම යාවත්කාලීන විය'), findsOneWidget);
+    await press(
+      tester,
+      find.byWidgetPredicate(
+        (w) => w is LanguageOptionCard && w.language.code == 'ta',
+      ),
+    );
     expect(find.text('இலங்கையை ஆராயுங்கள்'), findsOneWidget);
     final service = LanguageScope.of(
       tester.element(find.byType(LanguageSelectionScreen)),
@@ -89,11 +99,22 @@ void main() {
     'Profile language selection persists after leaving and returning',
     (tester) async {
       await launch(tester, AppRoutes.profile);
-      await tapText(tester, 'Language');
-      await tapText(tester, 'Tamil');
-      await tester.pageBack();
+      await tapText(
+        tester,
+        find.text('மொழி').evaluate().isNotEmpty ? 'மொழி' : 'Language',
+      );
+      await press(
+        tester,
+        find.byWidgetPredicate(
+          (w) => w is LanguageOptionCard && w.language.code == 'ta',
+        ),
+      );
+      await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-      await tapText(tester, 'Language');
+      await tapText(
+        tester,
+        find.text('மொழி').evaluate().isNotEmpty ? 'மொழி' : 'Language',
+      );
       expect(
         tester
             .widgetList<LanguageOptionCard>(find.byType(LanguageOptionCard))
@@ -113,7 +134,7 @@ void main() {
     expect(find.byType(FaqTile), findsNWidgets(9));
     await tapText(tester, 'How does navigation work?');
     expect(
-      find.textContaining('Navigation currently shows demo route'),
+      find.textContaining('Select a place and tap Navigate'),
       findsOneWidget,
     );
     expect(find.text('My Support Requests'), findsOneWidget);
@@ -148,11 +169,28 @@ void main() {
     'Support form validates then creates and displays actual request',
     (tester) async {
       await launch(tester, AppRoutes.helpSupport);
-      await tapText(tester, 'Contact Support');
-      await tapText(tester, 'Submit Request');
+      await tapText(
+        tester,
+        find.text('உதவியைத் தொடர்புகொள்ளுங்கள்').evaluate().isNotEmpty
+            ? 'உதவியைத் தொடர்புகொள்ளுங்கள்'
+            : 'Contact Support',
+      );
+      await tapText(
+        tester,
+        find.text('கோரிக்கையைச் சமர்ப்பியுங்கள்').evaluate().isNotEmpty
+            ? 'கோரிக்கையைச் சமர்ப்பியுங்கள்'
+            : 'Submit Request',
+      );
       expect(find.text('Category is required'), findsOneWidget);
       expect(find.text('Subject is required'), findsOneWidget);
-      expect(find.text('Message is required'), findsOneWidget);
+      expect(
+        find.text(
+          find.text('செய்தி தேவை').evaluate().isNotEmpty
+              ? 'செய்தி தேவை'
+              : 'Message is required',
+        ),
+        findsOneWidget,
+      );
       await chooseCategory(tester, 'Technical');
       await tester.enterText(field('Subject'), 'New request');
       await tester.enterText(field('Message'), 'My local message');
@@ -222,7 +260,12 @@ void main() {
     'Requests persist across navigation and help reuses emergency route',
     (tester) async {
       await launch(tester, AppRoutes.profile);
-      await tapText(tester, 'Help & Support');
+      await tapText(
+        tester,
+        find.text('உதவி மற்றும் ஆதரவு').evaluate().isNotEmpty
+            ? 'உதவி மற்றும் ஆதரவு'
+            : 'Help & Support',
+      );
       support(tester).createSupportRequest(
         subject: 'Session question',
         message: 'Message',
@@ -302,8 +345,19 @@ void main() {
       message: 'Message',
       category: SupportCategory.general,
     );
-    await tapText(tester, 'Logout');
-    await tapText(tester, 'Sign Out');
+    await tester.pumpAndSettle();
+    await tapText(
+      tester,
+      find.text('வெளியேறுங்கள்').evaluate().isNotEmpty
+          ? 'வெளியேறுங்கள்'
+          : 'Logout',
+    );
+    await tapText(
+      tester,
+      find.text('வெளியேறுங்கள்').evaluate().isNotEmpty
+          ? 'வெளியேறுங்கள்'
+          : 'Sign Out',
+    );
     expect(requests.getSupportRequests(), isEmpty);
     expect(languages.selectedLanguageCode, 'ta');
   });
@@ -317,18 +371,23 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await launch(tester, AppRoutes.language);
-      await tapText(tester, 'Tamil');
+      await press(
+        tester,
+        find.byWidgetPredicate(
+          (w) => w is LanguageOptionCard && w.language.code == 'ta',
+        ),
+      );
       expect(tester.takeException(), isNull);
       final context = tester.element(find.byType(LanguageSelectionScreen));
       Navigator.pushNamed(context, AppRoutes.about);
       await tester.pumpAndSettle();
-      await tapText(tester, 'Help & Support');
-      await tapText(tester, 'Contact Support');
+      await tapText(tester, 'உதவி மற்றும் ஆதரவு');
+      await tapText(tester, 'உதவியைத் தொடர்புகொள்ளுங்கள்');
       tester.view.viewInsets = const FakeViewPadding(bottom: 240);
       await tester.pumpAndSettle();
-      await tester.enterText(field('Subject'), 'Compact request');
-      await tapText(tester, 'Submit Request');
-      expect(find.text('Message is required'), findsOneWidget);
+      await tester.enterText(field('தலைப்பு'), 'Compact request');
+      await tapText(tester, 'கோரிக்கையைச் சமர்ப்பியுங்கள்');
+      expect(find.text('செய்தி தேவை'), findsOneWidget);
       expect(tester.takeException(), isNull);
       tester.view.resetViewInsets();
     },

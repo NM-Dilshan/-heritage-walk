@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../shared/widgets/heritage_text_field.dart';
@@ -21,7 +23,7 @@ class _GuideNoteDialogState extends State<GuideNoteDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: Text(widget.initialText == null ? 'Add Note' : 'Edit Note'),
+    title: UiText(widget.initialText == null ? 'Add Note' : 'Edit Note'),
     content: SingleChildScrollView(
       child: Form(
         key: _form,
@@ -31,14 +33,15 @@ class _GuideNoteDialogState extends State<GuideNoteDialog> {
           maxLines: 4,
           maxLength: 500,
           keyboardType: TextInputType.multiline,
-          validator: GuideNotesService.validate,
+          validator: (value) =>
+              localizeError(context, (GuideNotesService.validate)(value)),
         ),
       ),
     ),
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Cancel'),
+        child: const UiText('Cancel'),
       ),
       TextButton(
         onPressed: () {
@@ -46,7 +49,7 @@ class _GuideNoteDialogState extends State<GuideNoteDialog> {
             Navigator.pop(context, _text.text.trim());
           }
         },
-        child: const Text('Save'),
+        child: const UiText('Save'),
       ),
     ],
   );

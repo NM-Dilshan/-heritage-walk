@@ -1,3 +1,5 @@
+import '../localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import 'sync_controller.dart';
@@ -31,7 +33,7 @@ class CloudStatus extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (sync.busy) ...[
-                      Text(
+                      UiText(
                         sync.loading
                             ? 'Loading saved data…'
                             : 'Saving changes…',
@@ -43,17 +45,17 @@ class CloudStatus extends StatelessWidget {
                       const LinearProgressIndicator(),
                     ],
                     if (sync.error != null && !sync.busy) ...[
-                      Text(sync.error!),
+                      UiText(sync.error!),
                       Wrap(
                         spacing: 8,
                         children: [
                           TextButton(
                             onPressed: sync.retry,
-                            child: const Text('Reload Saved Data'),
+                            child: const UiText('Reload Saved Data'),
                           ),
                           TextButton(
                             onPressed: onSignOut,
-                            child: const Text('Sign Out'),
+                            child: const UiText('Sign Out'),
                           ),
                         ],
                       ),

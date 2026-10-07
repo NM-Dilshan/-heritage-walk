@@ -1,3 +1,5 @@
+import '../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 class HeritageBottomNavigation extends StatelessWidget {
@@ -13,31 +15,32 @@ class HeritageBottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) => NavigationBar(
     selectedIndex: selectedIndex,
     onDestinationSelected: onDestinationSelected,
-    destinations: const [
+    height: 90,
+    destinations: [
       NavigationDestination(
         icon: Icon(Icons.home_outlined),
         selectedIcon: Icon(Icons.home),
-        label: 'Home',
+        label: AppLocalizations.text(context, 'Home'),
       ),
       NavigationDestination(
         icon: Icon(Icons.explore_outlined),
         selectedIcon: Icon(Icons.explore),
-        label: 'Explore',
+        label: AppLocalizations.text(context, 'Explore'),
       ),
       NavigationDestination(
         icon: Icon(Icons.map_outlined),
         selectedIcon: Icon(Icons.map),
-        label: 'Map',
+        label: AppLocalizations.text(context, 'Map'),
       ),
       NavigationDestination(
         icon: Icon(Icons.event_note_outlined),
         selectedIcon: Icon(Icons.event_note),
-        label: 'Itinerary',
+        label: AppLocalizations.text(context, 'Itinerary'),
       ),
       NavigationDestination(
         icon: Icon(Icons.person_outline),
         selectedIcon: Icon(Icons.person),
-        label: 'Profile',
+        label: AppLocalizations.text(context, 'Profile'),
       ),
     ],
   );

@@ -559,10 +559,10 @@ void main() {
         ]),
       );
       await mount(tester, services, AppRoutes.home);
-      expect(find.text('? 3.5 (2)'), findsOneWidget);
+      expect(find.text('★ 3.5 (2)'), findsOneWidget);
       expect(find.textContaining('999'), findsNothing);
       await press(tester, 'Explore All Places');
-      expect(find.text('? 3.5 (2)'), findsOneWidget);
+      expect(find.text('★ 3.5 (2)'), findsOneWidget);
     },
   );
   testWidgets('Review form creates edits and confirms deletion', (

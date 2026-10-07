@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -82,14 +84,14 @@ class _SplashScreenState extends State<SplashScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
-                      Text(
+                      UiText(
                         'Sri Lanka',
                         style: Theme.of(context).textTheme.titleLarge
                             ?.copyWith(color: AppColors.surface),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
-                      Text(
+                      UiText(
                         AppStrings.tagline,
                         style: Theme.of(context).textTheme.bodyLarge
                             ?.copyWith(color: AppColors.surface),

@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/routes/app_routes.dart';
@@ -18,7 +20,7 @@ class GroupTourScreen extends StatelessWidget {
     );
     if (id != null && context.mounted) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Group joined')));
+          .showSnackBar(const SnackBar(content: UiText('Group joined')));
       Navigator.pushNamed(context, AppRoutes.groupDetails, arguments: id);
     }
   }
@@ -32,12 +34,12 @@ class GroupTourScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
+          UiText(
             'Explore Sri Lanka together',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 12),
-          const Text(
+          const UiText(
             'Signed-in groups and membership are saved to your account. Invite codes let other signed-in users join.',
           ),
           const SizedBox(height: 24),

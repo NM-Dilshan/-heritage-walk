@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
@@ -7,6 +9,7 @@ import '../../discovery_planning/models/heritage_place.dart';
 import '../../discovery_planning/services/discovery_service.dart';
 import '../../discovery_planning/widgets/discovery_layout.dart';
 import '../services/catalog_controller.dart';
+import '../services/predefined_places.dart';
 import '../services/place_validation.dart';
 import '../services/place_image_catalog.dart';
 import '../widgets/place_image_selector.dart';
@@ -22,7 +25,7 @@ class AdminGuard extends StatelessWidget {
       ? child
       : const DiscoveryLayout(
           title: 'Admin access required',
-          child: Text(
+          child: UiText(
             'This area is available only to authorized administrators. Return to your profile.',
           ),
         );
@@ -40,7 +43,7 @@ class AdminDashboardScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
+          UiText(
             'Historical Places',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
@@ -69,7 +72,7 @@ class AdminDashboardScreen extends StatelessWidget {
             ),
             if (recent.isNotEmpty) ...[
               const SizedBox(height: 16),
-              const Text('Recently updated'),
+              const UiText('Recently updated'),
               for (final place in recent.take(3))
                 ListTile(
                   title: Text(place.name),
@@ -82,21 +85,21 @@ class AdminDashboardScreen extends StatelessWidget {
             onPressed: () =>
                 Navigator.pushNamed(context, AppRoutes.adminReviews),
             icon: const Icon(Icons.reviews_outlined),
-            label: const Text('Review Moderation'),
+            label: const UiText('Review Moderation'),
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () =>
                 Navigator.pushNamed(context, AppRoutes.adminPlaces),
             icon: const Icon(Icons.account_balance),
-            label: const Text('Manage Historical Places'),
+            label: const UiText('Manage Historical Places'),
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () =>
                 Navigator.pushNamed(context, AppRoutes.adminEmergency),
             icon: const Icon(Icons.contact_phone_outlined),
-            label: const Text('Emergency Contacts'),
+            label: const UiText('Emergency Contacts'),
           ),
           Text(
             'Emergency contacts: ${EmergencyScope.of(context).adminContacts.length}',
@@ -122,7 +125,7 @@ class _CatalogStatus extends StatelessWidget {
             Text(catalog.error!),
             TextButton(
               onPressed: catalog.reloadAdmin,
-              child: const Text('Reload catalog'),
+              child: const UiText('Reload catalog'),
             ),
           ],
         )
@@ -139,7 +142,8 @@ class _AdminPlacesScreenState extends State<AdminPlacesScreen> {
   String _query = '', _category = 'All';
   void _message(String text) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: UiText(text)));
     }
   }
 
@@ -147,18 +151,18 @@ class _AdminPlacesScreenState extends State<AdminPlacesScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete ${place.name}?'),
-        content: const Text(
+        title: UiText("Delete {0}?", args: [place.name]),
+        content: const UiText(
           'This removes the catalog place. Saved favorites, itineraries and groups are retained. Consider deactivating it instead.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const UiText('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: const UiText('Delete'),
           ),
         ],
       ),
@@ -176,18 +180,18 @@ class _AdminPlacesScreenState extends State<AdminPlacesScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Seed original catalog?'),
-        content: const Text(
+        title: const UiText('Seed original catalog?'),
+        content: const UiText(
           'Add the eight original demo places using their stable IDs. Existing documents are skipped without overwriting them. Ratings are illustrative demo values.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const UiText('Cancel'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Seed catalog'),
+            child: const UiText('Seed catalog'),
           ),
         ],
       ),
@@ -196,6 +200,37 @@ class _AdminPlacesScreenState extends State<AdminPlacesScreen> {
     try {
       final result = await catalog.seed();
       _message('Created ${result.created}; skipped ${result.skipped}.');
+    } catch (error) {
+      _message(backendMessage(error));
+    }
+  }
+
+  Future<void> _import(CatalogController catalog) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const UiText('Import all 17 predefined historical places?'),
+        content: const UiText(
+          'Existing matching places receive predefined metadata. Reviews and saved references are retained.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const UiText('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const UiText('Import'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      final result = await catalog.importPredefined();
+      _message(
+        'Created ${result.created}; updated ${result.updated}; skipped ${result.skipped}.',
+      );
     } catch (error) {
       _message(backendMessage(error));
     }
@@ -215,17 +250,13 @@ class _AdminPlacesScreenState extends State<AdminPlacesScreen> {
                 ? null
                 : () => Navigator.pushNamed(context, AppRoutes.adminPlaceAdd),
             icon: const Icon(Icons.add),
-            label: const Text('Add Place'),
+            label: const UiText('Add Place'),
           ),
-          TextButton.icon(
-            onPressed: catalog.busy ? null : () => _seed(catalog),
-            icon: const Icon(Icons.dataset_outlined),
-            label: const Text('Seed original catalog (one-time setup)'),
-          ),
+
           const SizedBox(height: 16),
           TextField(
-            decoration: const InputDecoration(
-              labelText: 'Search places',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.text(context, 'Search places'),
               prefixIcon: Icon(Icons.search),
             ),
             onChanged: (value) => setState(() => _query = value),
@@ -234,10 +265,12 @@ class _AdminPlacesScreenState extends State<AdminPlacesScreen> {
           DropdownButtonFormField<String>(
             initialValue: _category,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Category filter'),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.text(context, 'Category filter'),
+            ),
             items: [
               for (final category in DiscoveryService.categories)
-                DropdownMenuItem(value: category, child: Text(category)),
+                DropdownMenuItem(value: category, child: UiText(category)),
             ],
             onChanged: (value) => setState(() => _category = value ?? 'All'),
           ),
@@ -246,7 +279,7 @@ class _AdminPlacesScreenState extends State<AdminPlacesScreen> {
           if (!catalog.loading && catalog.error == null && places.isEmpty)
             Padding(
               padding: const EdgeInsets.all(24),
-              child: Text(
+              child: UiText(
                 catalog.places.isEmpty
                     ? 'No historical places yet. Add a place or seed the original catalog.'
                     : 'No places match your search.',
@@ -270,7 +303,7 @@ class _AdminPlacesScreenState extends State<AdminPlacesScreen> {
                     Text(
                       '${place.city}, ${place.district} • ${place.category}',
                     ),
-                    Chip(label: Text(place.isActive ? 'Active' : 'Inactive')),
+                    Chip(label: UiText(place.isActive ? 'Active' : 'Inactive')),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -282,7 +315,7 @@ class _AdminPlacesScreenState extends State<AdminPlacesScreen> {
                             arguments: place,
                           ),
                           icon: const Icon(Icons.visibility_outlined),
-                          label: const Text('Preview'),
+                          label: const UiText('Preview'),
                         ),
                         TextButton.icon(
                           onPressed: catalog.busy
@@ -293,14 +326,14 @@ class _AdminPlacesScreenState extends State<AdminPlacesScreen> {
                                   arguments: place.id,
                                 ),
                           icon: const Icon(Icons.edit_outlined),
-                          label: const Text('Edit'),
+                          label: const UiText('Edit'),
                         ),
                         TextButton.icon(
                           onPressed: catalog.busy
                               ? null
                               : () => _delete(catalog, place),
                           icon: const Icon(Icons.delete_outline),
-                          label: const Text('Delete'),
+                          label: const UiText('Delete'),
                         ),
                       ],
                     ),
@@ -341,7 +374,7 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
   };
   HeritagePlace? _original;
   String? _category;
-  String? _documentId;
+  String? _documentId, _predefinedId;
   String _imagePath = AppAssets.placePlaceholder;
   bool _active = true, _featured = false, _saving = false, _initialized = false;
   String? _error;
@@ -417,6 +450,31 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
     }
   }
 
+  void _loadPredefined(HeritagePlace place, CatalogController catalog) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final values = place.toMap();
+    setState(() {
+      for (final entry in _controllers.entries) {
+        entry.value.text = entry.key == 'highlights'
+            ? place.highlights.join('\n')
+            : values[entry.key]?.toString() ?? '';
+      }
+      _predefinedId = place.id;
+      final alias = PredefinedPlaces.aliases[place.id];
+      _documentId =
+          !catalog.places.any((p) => p.id == place.id) &&
+              alias != null &&
+              catalog.places.any((p) => p.id == alias)
+          ? alias
+          : place.id;
+      _category = place.category;
+      _imagePath = place.imagePath;
+      _active = place.isActive;
+      _featured = place.isFeatured;
+      _error = null;
+    });
+  }
+
   Future<void> _chooseImage() async {
     final selected = await choosePlaceImage(context, _imagePath);
     if (mounted && selected != null) setState(() => _imagePath = selected);
@@ -430,7 +488,7 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
         title: 'Edit Historical Place',
         child: catalog.loading
             ? const Center(child: CircularProgressIndicator())
-            : const Text(
+            : const UiText(
                 'This place is unavailable. Return to the catalog and reload.',
               ),
       );
@@ -446,23 +504,65 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (widget.placeId == null) ...[
+                DropdownButtonFormField<String>(
+                  key: const ValueKey('load-predefined-place'),
+                  initialValue: _predefinedId,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.text(
+                      context,
+                      'Load Predefined Place',
+                    ),
+                  ),
+                  items: [
+                    for (final place in PredefinedPlaces.places)
+                      DropdownMenuItem(
+                        value: place.id,
+                        child: Text(
+                          place.name,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: _saving || catalog.busy
+                      ? null
+                      : (id) {
+                          if (id != null) {
+                            _loadPredefined(
+                              PredefinedPlaces.places.singleWhere(
+                                (p) => p.id == id,
+                              ),
+                              catalog,
+                            );
+                          }
+                        },
+                ),
+                const SizedBox(height: 16),
+              ],
               DropdownButtonFormField<String>(
+                key: ValueKey('place-category-$_category'),
                 initialValue: DiscoveryService.categories.contains(_category)
                     ? _category
                     : null,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Category *'),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.text(context, 'Category *'),
+                ),
                 items: [
                   for (final category in DiscoveryService.categories.skip(1))
-                    DropdownMenuItem(value: category, child: Text(category)),
+                    DropdownMenuItem(value: category, child: UiText(category)),
                 ],
-                validator: PlaceValidation.requiredText,
+                validator: (value) => localizeError(
+                  context,
+                  (PlaceValidation.requiredText)(value),
+                ),
                 onChanged: _saving
                     ? null
                     : (value) => setState(() => _category = value),
               ),
               const SizedBox(height: 16),
-              Text(
+              UiText(
                 'Choose Place Image',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -488,7 +588,7 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
                   OutlinedButton.icon(
                     onPressed: _saving ? null : _chooseImage,
                     icon: const Icon(Icons.photo_library_outlined),
-                    label: const Text('Choose Place Image'),
+                    label: const UiText('Choose Place Image'),
                   ),
                   if (_imagePath != AppAssets.placePlaceholder)
                     TextButton(
@@ -497,7 +597,7 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
                           : () => setState(
                               () => _imagePath = AppAssets.placePlaceholder,
                             ),
-                      child: const Text('Use placeholder'),
+                      child: const UiText('Use placeholder'),
                     ),
                   if (_imagePath !=
                       (_original?.imagePath ?? AppAssets.placePlaceholder))
@@ -509,7 +609,7 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
                                   _original?.imagePath ??
                                   AppAssets.placePlaceholder,
                             ),
-                      child: const Text('Restore current image'),
+                      child: const UiText('Restore current image'),
                     ),
                 ],
               ),
@@ -518,6 +618,7 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: TextFormField(
+                    key: ValueKey('place-field-${entry.key}'),
                     controller: _controllers[entry.key],
                     enabled: !_saving,
                     decoration: InputDecoration(
@@ -538,22 +639,25 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
                             signed: true,
                           )
                         : TextInputType.text,
-                    validator: (value) => switch (entry.key) {
-                      'name' ||
-                      'description' ||
-                      'city' ||
-                      'district' => PlaceValidation.requiredText(value),
-                      'latitude' => PlaceValidation.coordinate(value, 90),
-                      'longitude' => PlaceValidation.coordinate(value, 180),
-                      'imagePath' => PlaceValidation.image(value),
-                      _ => null,
-                    },
+                    validator: (value) => localizeError(
+                      context,
+                      ((value) => switch (entry.key) {
+                        'name' ||
+                        'description' ||
+                        'city' ||
+                        'district' => PlaceValidation.requiredText(value),
+                        'latitude' => PlaceValidation.coordinate(value, 90),
+                        'longitude' => PlaceValidation.coordinate(value, 180),
+                        'imagePath' => PlaceValidation.image(value),
+                        _ => null,
+                      })(value),
+                    ),
                   ),
                 ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Active'),
-                subtitle: const Text('Visible in normal discovery'),
+                title: const UiText('Active'),
+                subtitle: const UiText('Visible in normal discovery'),
                 value: _active,
                 onChanged: _saving
                     ? null
@@ -561,7 +665,7 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Featured'),
+                title: const UiText('Featured'),
                 value: _featured,
                 onChanged: _saving
                     ? null
@@ -570,7 +674,7 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text(
+                  child: UiText(
                     _error!,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.error,
@@ -582,7 +686,7 @@ class _AdminPlaceFormScreenState extends State<AdminPlaceFormScreen> {
                 onPressed: _saving || catalog.busy
                     ? null
                     : () => _save(catalog),
-                child: const Text('Save Place'),
+                child: const UiText('Save Place'),
               ),
               const SizedBox(height: 24),
             ],

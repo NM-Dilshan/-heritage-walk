@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/routes/app_routes.dart';
@@ -35,16 +37,16 @@ class DigitalGuideScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete this note?'),
+        title: const UiText('Delete this note?'),
         content: Text(note.text),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: const UiText('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
+            child: const UiText('Delete'),
           ),
         ],
       ),
@@ -54,13 +56,16 @@ class DigitalGuideScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = GuideContent.forPlace(place);
+    final content = GuideContent.forPlace(
+      place,
+      translate: (value) => AppLocalizations.text(context, value),
+    );
     final notes = NavigationGuideScope.of(context).notes.forPlace(place.id);
     return DiscoveryLayout(
       title: 'Digital Guide',
       actions: [
         IconButton(
-          tooltip: 'Emergency Support',
+          tooltip: AppLocalizations.text(context, 'Emergency Support'),
           onPressed: () => Navigator.pushNamed(context, AppRoutes.emergency),
           icon: const Icon(Icons.health_and_safety_outlined),
         ),
@@ -87,7 +92,7 @@ class DigitalGuideScreen extends StatelessWidget {
                 .map((value) => '- $value')
                 .join(String.fromCharCode(10)),
             'Visitor Tips': GuideContent.visitorTips
-                .map((value) => '- $value')
+                .map((value) => '- ${AppLocalizations.text(context, value)}')
                 .join(String.fromCharCode(10)),
           }.entries)
             Padding(
@@ -100,13 +105,14 @@ class DigitalGuideScreen extends StatelessWidget {
             ),
           const SectionHeader(
             title: 'My Notes',
-            subtitle:
-                'Personal notes for this place. Stored for this session only.',
+            subtitle: 'Personal notes are saved to your signed-in account.',
           ),
           if (notes.isEmpty)
             const Padding(
               padding: EdgeInsets.only(bottom: 16),
-              child: Text('No notes yet. Capture a thought from your journey.'),
+              child: UiText(
+                'No notes yet. Capture a thought from your journey.',
+              ),
             ),
           for (final note in notes)
             Padding(
@@ -119,8 +125,9 @@ class DigitalGuideScreen extends StatelessWidget {
                     children: [
                       Text(note.text),
                       const SizedBox(height: 8),
-                      Text(
-                        'Updated ${formatTourDate(note.updatedAt)}',
+                      UiText(
+                        "Updated {0}",
+                        args: [formatTourDate(note.updatedAt)],
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       Wrap(
@@ -128,12 +135,12 @@ class DigitalGuideScreen extends StatelessWidget {
                         children: [
                           TextButton.icon(
                             icon: const Icon(Icons.edit_outlined),
-                            label: const Text('Edit Note'),
+                            label: const UiText('Edit Note'),
                             onPressed: () => _editNote(context, note: note),
                           ),
                           TextButton.icon(
                             icon: const Icon(Icons.delete_outline),
-                            label: const Text('Delete Note'),
+                            label: const UiText('Delete Note'),
                             onPressed: () => _deleteNote(context, note),
                           ),
                         ],

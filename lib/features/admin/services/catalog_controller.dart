@@ -211,6 +211,13 @@ class CatalogController extends ChangeNotifier {
     }
     return (created: created, skipped: skipped);
   });
+  Future<PlaceImportResult> importPredefined() => _operation((uid) async {
+    if (!isAdmin || !profile.isAuthenticated || profile.profile.id != uid) {
+      throw const BackendFailure('Admin access is required.');
+    }
+    return repository!.importPredefined(uid);
+  });
+
   @override
   void dispose() {
     _disposed = true;

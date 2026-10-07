@@ -1,3 +1,4 @@
+import '../../../core/localization/app_localizations.dart';
 import '../../reviews/widgets/review_widgets.dart';
 
 import 'package:flutter/material.dart';
@@ -35,7 +36,10 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                   .firstOrNull ??
               widget.place;
     final favorites = DiscoveryScope.of(context).favorites;
-    final content = GuideContent.forPlace(place);
+    final content = GuideContent.forPlace(
+      place,
+      translate: (value) => AppLocalizations.text(context, value),
+    );
     return DiscoveryLayout(
       title: 'Place Details',
       actions: [
@@ -147,7 +151,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
               alignment: Alignment.centerLeft,
               child: TextButton(
                 onPressed: () => setState(() => _expanded = !_expanded),
-                child: Text(_expanded ? 'Show less' : 'Read more'),
+                child: UiText(_expanded ? 'Show less' : 'Read more'),
               ),
             ),
           const SectionHeader(title: 'Highlights'),
@@ -165,7 +169,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
           for (final tip in GuideContent.visitorTips)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text('- $tip'),
+              child: Text('- ${AppLocalizations.text(context, tip)}'),
             ),
           const SizedBox(height: 16),
           HeritageButton(
@@ -189,7 +193,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
           const SizedBox(height: 12),
           TextButton.icon(
             icon: const Icon(Icons.local_convenience_store_outlined),
-            label: const Text('Nearby Facilities'),
+            label: const UiText('Nearby Facilities'),
             onPressed: () => Navigator.pushNamed(
               context,
               AppRoutes.facilities,
@@ -208,7 +212,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.labelLarge),
+        UiText(label, style: Theme.of(context).textTheme.labelLarge),
         const SizedBox(height: 4),
         Text(value),
       ],

@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 class MemberStatusChip extends StatelessWidget {
@@ -6,5 +8,5 @@ class MemberStatusChip extends StatelessWidget {
   final IconData icon;
   @override
   Widget build(BuildContext context) =>
-      Chip(avatar: Icon(icon, size: 18), label: Text(label));
+      Chip(avatar: Icon(icon, size: 18), label: UiText(label));
 }

@@ -1,3 +1,6 @@
+import 'location_service.dart';
+import 'routing_service.dart';
+
 import 'package:flutter/material.dart';
 
 import 'navigation_service.dart';
@@ -6,17 +9,25 @@ import 'facility_service.dart';
 import 'emergency_service.dart';
 
 class NavigationGuideState extends ChangeNotifier {
-  NavigationGuideState() {
+  NavigationGuideState({
+    LocationService? location,
+    RoutingService? routing,
+    NearbyFacilityService? facilities,
+    this.tilesEnabled = true,
+  }) : navigation = NavigationService(location: location, routing: routing),
+       facilities = facilities ?? UnavailableNearbyFacilityService() {
     navigation.addListener(notifyListeners);
     notes.addListener(notifyListeners);
   }
-  final navigation = NavigationService();
+  final NavigationService navigation;
+  final bool tilesEnabled;
   final notes = GuideNotesService();
-  final facilities = FacilityService();
+  final NearbyFacilityService facilities;
   final emergency = EmergencyService();
   void clearSession() {
     navigation.clear();
     notes.clear();
+    facilities.clearCache();
   }
 
   @override
@@ -25,6 +36,7 @@ class NavigationGuideState extends ChangeNotifier {
     notes.removeListener(notifyListeners);
     navigation.dispose();
     notes.dispose();
+    facilities.dispose();
     super.dispose();
   }
 }

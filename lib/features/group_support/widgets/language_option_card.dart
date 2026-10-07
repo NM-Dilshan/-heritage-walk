@@ -1,3 +1,5 @@
+import '../../../core/localization/app_localizations.dart';
+
 import 'package:flutter/material.dart';
 
 import '../services/language_service.dart';
@@ -21,7 +23,7 @@ class LanguageOptionCard extends StatelessWidget {
           horizontal: 20,
           vertical: 12,
         ),
-        title: Text(language.name),
+        title: UiText(language.name),
         subtitle: Text(language.nativeName),
         trailing: Icon(
           selected ? Icons.check_circle : Icons.radio_button_unchecked,
